@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Menú del Restaurante</title>
+</head>
+<body>
+    <h1>Menú</h1>
+    <ul>
+        {% for producto in productos %}
+            <li>{{ producto.nombre }} - S/. {{ producto.precio }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
