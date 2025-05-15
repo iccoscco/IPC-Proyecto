@@ -1,14 +1,20 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Menú del Restaurante</title>
+    <title>Panel Principal</title>
 </head>
 <body>
-    <h1>Menú</h1>
+    <h1>Bienvenido al Sistema del Restaurante</h1>
+    <h2>Seleccione una opción:</h2>
     <ul>
-        {% for producto in productos %}
-            <li>{{ producto.nombre }} - S/. {{ producto.precio }}</li>
-        {% endfor %}
+        <li><a href="/usuarios">Registrar Usuarios</a></li>
+        <li><a href="/menu">Registrar Menú</a></li>
+        <li><a href="/ingredientes">Registrar Ingredientes</a></li>
+        <li><a href="/pedidos">Registrar Pedido</a></li>
+        <li><a href="/detalle_pedido">Agregar Detalle de Pedido</a></li>
+        <li><a href="/registro_voz">Agregar Registro de Voz</a></li>
+        <li><a href="/auditoria">Agregar Registro de Auditoría</a></li>
     </ul>
 </body>
 </html>

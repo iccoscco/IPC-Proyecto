@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agregar Usuario</title>
+</head>
+<body>
+    <h1>Nuevo Usuario</h1>
+    <form method="POST" action="/guardar_usuario">
+        Nombre: <input type="text" name="nombre"><br>
+        Correo: <input type="email" name="correo"><br>
+        Rol:
+        <select name="rol">
+            <option value="cliente">Cliente</option>
+            <option value="mesero">Mesero</option>
+            <option value="cocinero">Cocinero</option>
+            <option value="gerente">Gerente</option>
+            <option value="admin">Admin</option>
+        </select><br>
+        <button type="submit">Guardar</button>
+    </form>
+</body>
+</html>

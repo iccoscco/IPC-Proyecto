@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nuevo Pedido</title>
+</head>
+<body>
+    <h1>Registrar Pedido</h1>
+    <form method="POST" action="/guardar_pedido">
+        ID Usuario: <input type="number" name="id_usuario"><br>
+        Estado:
+        <select name="estado">
+            <option value="pendiente">Pendiente</option>
+            <option value="en cocina">En cocina</option>
+            <option value="servido">Servido</option>
+            <option value="cancelado">Cancelado</option>
+        </select><br>
+        Origen:
+        <select name="origen">
+            <option value="voz">Voz</option>
+            <option value="tactil">Táctil</option>
+        </select><br>
+        <button type="submit">Guardar</button>
+    </form>
+</body>
+</html>
+
