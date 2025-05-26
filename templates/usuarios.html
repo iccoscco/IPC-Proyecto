@@ -1,22 +1,25 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Agregar Usuario</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Agregar Usuario{% endblock %}
+
+{% block content %}
+<div class="form-container">
     <h1>Nuevo Usuario</h1>
     <form method="POST" action="/guardar_usuario">
-        Nombre: <input type="text" name="nombre"><br>
-        Correo: <input type="email" name="correo"><br>
-        Rol:
-        <select name="rol">
-            <option value="cliente">Cliente</option>
-            <option value="mesero">Mesero</option>
-            <option value="cocinero">Cocinero</option>
-            <option value="gerente">Gerente</option>
-            <option value="admin">Admin</option>
-        </select><br>
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" required>
+
+        <label for="correo">Correo:</label>
+        <input type="email" id="correo" name="correo" required>
+
+        <label for="rol">Rol:</label>
+        <select id="rol" name="id_rol" required>
+            {% for rol in roles %}
+                <option value="{{ rol.id }}">{{ rol.nombre }}</option>
+            {% endfor %}
+        </select>
+
         <button type="submit">Guardar</button>
     </form>
-</body>
-</html>
+</div>
+{% endblock %}

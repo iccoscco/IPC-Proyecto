@@ -1,20 +1,157 @@
-<!-- templates/index.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Panel Principal</title>
-</head>
-<body>
-    <h1>Bienvenido al Sistema del Restaurante</h1>
-    <h2>Seleccione una opción:</h2>
-    <ul>
-        <li><a href="/usuarios">Registrar Usuarios</a></li>
-        <li><a href="/menu">Registrar Menú</a></li>
-        <li><a href="/ingredientes">Registrar Ingredientes</a></li>
-        <li><a href="/pedidos">Registrar Pedido</a></li>
-        <li><a href="/detalle_pedido">Agregar Detalle de Pedido</a></li>
-        <li><a href="/registro_voz">Agregar Registro de Voz</a></li>
-        <li><a href="/auditoria">Agregar Registro de Auditoría</a></li>
-    </ul>
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<h1>Bienvenido al Sistema del Restaurante</h1>
+<p>Resumen de datos actuales en el sistema:</p>
+
+<h2>Usuarios</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+            <tr>
+                <td>{{ usuario.id }}</td>
+                <td>{{ usuario.nombre }}</td>
+                <td>{{ usuario.correo }}</td>
+                <td>{{ usuario.id_rol }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2>Menú</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th><th>Nombre</th><th>Descripción</th><th>Precio</th><th>Disponible</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in menu %}
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.nombre }}</td>
+                <td>{{ item.descripcion }}</td>
+                <td>{{ item.precio }}</td>
+                <td>{{ item.disponible }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2>Ingredientes</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th><th>Nombre</th><th>Cantidad</th><th>Unidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ing in ingredientes %}
+            <tr>
+                <td>{{ ing.id }}</td>
+                <td>{{ ing.nombre }}</td>
+                <td>{{ ing.cantidad_disponible }}</td>
+                <td>{{ ing.unidad_medida }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2>Pedidos</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th><th>ID Usuario</th><th>Estado</th><th>Origen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ped in pedidos %}
+            <tr>
+                <td>{{ ped.id }}</td>
+                <td>{{ ped.id_usuario }}</td>
+                <td>{{ ped.estado }}</td>
+                <td>{{ ped.origen }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2>Detalles de Pedido</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th><th>ID Pedido</th><th>ID Menú</th><th>Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in detalles %}
+            <tr>
+                <td>{{ d.id }}</td>
+                <td>{{ d.id_pedido }}</td>
+                <td>{{ d.id_menu }}</td>
+                <td>{{ d.cantidad }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2>Registros de Voz</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th><th>ID Pedido</th><th>Texto</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rv in registros_voz %}
+            <tr>
+                <td>{{ rv.id }}</td>
+                <td>{{ rv.id_pedido }}</td>
+                <td>{{ rv.texto_reconocido }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2>Auditoría</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th><th>ID Usuario</th><th>Rol</th><th>Tabla</th><th>Acción</th><th>Descripción</th><th>Dispositivo</th><th>IP</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for aud in auditorias %}
+            <tr>
+                <td>{{ aud.id }}</td>
+                <td>{{ aud.id_usuario }}</td>
+                <td>{{ aud.rol_usuario }}</td>
+                <td>{{ aud.tabla_afectada }}</td>
+                <td>{{ aud.accion }}</td>
+                <td>{{ aud.descripcion }}</td>
+                <td>{{ aud.dispositivo }}</td>
+                <td>{{ aud.ip_origen }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

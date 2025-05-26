@@ -1,17 +1,82 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Detalle de Pedido</title>
-</head>
-<body>
-    <h1>Agregar Detalle de Pedido</h1>
-    <form method="POST" action="/guardar_detalle_pedido">
-        ID Pedido: <input type="number" name="id_pedido"><br>
-        ID Menú: <input type="number" name="id_menu"><br>
-        Cantidad: <input type="number" name="cantidad"><br>
-        <button type="submit">Guardar</button>
-    </form>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}
+Detalle de Pedidos
+{% endblock %}
+
+{% block content %}
+<h1>Detalle de Pedidos</h1>
+
+<h2>Pedidos existentes</h2>
+<table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+        <tr>
+            <th>ID Pedido</th>
+            <th>ID Usuario</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pedido in pedidos %}
+        <tr>
+            <td>{{ pedido.id }}</td>
+            <td>{{ pedido.id_usuario }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="2">No hay pedidos</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<hr>
+
+<h2>Agregar detalle a un pedido</h2>
+<form action="/guardar_detalles_pedido" method="POST">
+    <label for="id_pedido">Seleccione pedido:</label>
+    <select name="id_pedido" id="id_pedido" required>
+        <option value="" disabled selected>-- Seleccione pedido --</option>
+        {% for pedido in pedidos %}
+            <option value="{{ pedido.id }}">{{ pedido.id }} (Usuario: {{ pedido.id_usuario }})</option>
+        {% endfor %}
+    </select>
+
+    <br><br>
+
+    <div id="menu-container">
+        <div class="menu-item">
+            <label>Menú:</label>
+            <select name="id_menu[]" required>
+                <option value="" disabled selected>-- Seleccione menú --</option>
+                {% for item in menu %}
+                    <option value="{{ item.id }}">{{ item.nombre }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Cantidad:</label>
+            <input type="number" name="cantidad[]" min="1" value="1" required>
+        </div>
+    </div>
+
+    <button type="button" onclick="agregarFila()">+ Añadir otro ítem</button>
+
+    <br><br>
+
+    <button type="submit">Guardar Todos los Detalles</button>
+</form>
+
+<script>
+    function agregarFila() {
+        const contenedor = document.getElementById('menu-container');
+        const nuevo = contenedor.children[0].cloneNode(true);
+        // Reiniciar valores
+        nuevo.querySelector('select').selectedIndex = 0;
+        nuevo.querySelector('input').value = 1;
+        contenedor.appendChild(nuevo);
+    }
+</script>
+
+{% endblock %}
+
 
 

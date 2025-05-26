@@ -1,36 +1,55 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Registro en Auditoría</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Registro en Auditoría{% endblock %}
+
+{% block content %}
+<div class="form-container">
     <h1>Registrar Acción</h1>
     <form method="POST" action="/guardar_auditoria">
-        ID Usuario: <input type="number" name="id_usuario"><br>
-        Rol:
-        <select name="rol">
-            <option value="cliente">Cliente</option>
-            <option value="mesero">Mesero</option>
-            <option value="cocinero">Cocinero</option>
-            <option value="gerente">Gerente</option>
-            <option value="admin">Admin</option>
-        </select><br>
-        Tabla afectada: <input type="text" name="tabla"><br>
-        Acción:
-        <select name="accion">
+        <label for="id_usuario">Usuario:</label>
+        <select name="id_usuario" id="id_usuario" required>
+            {% for usuario in usuarios %}
+                <option value="{{ usuario.id }}">{{ usuario.nombre }} - {{ usuario.rol }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="rol_usuario">Rol:</label>
+        <select name="rol_usuario" id="rol_usuario" required>
+            {% for rol in roles %}
+            <option value="{{ rol.id }}">{{ rol.nombre }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="tabla">Tabla afectada:</label>
+        <select name="tabla" id="tabla" required>
+            <option value="" disabled selected>-- Seleccione una tabla --</option>
+            {% for tabla in tablas %}
+                <option value="{{ tabla }}">{{ tabla }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="accion">Acción:</label>
+        <select name="accion" id="accion" required>
             <option value="INSERT">INSERT</option>
             <option value="UPDATE">UPDATE</option>
             <option value="DELETE">DELETE</option>
             <option value="LOGIN">LOGIN</option>
             <option value="LOGOUT">LOGOUT</option>
-        </select><br>
-        Descripción: <textarea name="descripcion"></textarea><br>
-        Dispositivo: <input type="text" name="dispositivo"><br>
-        IP Origen: <input type="text" name="ip"><br>
+        </select>
+
+        <label for="descripcion">Descripción:</label>
+        <textarea name="descripcion" id="descripcion" rows="4" required></textarea>
+
+        <label for="dispositivo">Dispositivo:</label>
+        <input type="text" name="dispositivo" id="dispositivo" required>
+
+        <label for="ip">IP Origen:</label>
+        <input type="text" name="ip" id="ip" required>
+
         <button type="submit">Guardar</button>
     </form>
-</body>
-</html>
+</div>
+{% endblock %}
 
 
 

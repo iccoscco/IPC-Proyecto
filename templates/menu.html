@@ -1,20 +1,28 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Agregar Menú</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Agregar Menú{% endblock %}
+
+{% block content %}
+<div class="form-container">
     <h1>Nuevo Plato del Menú</h1>
     <form method="POST" action="/guardar_menu">
-        Nombre: <input type="text" name="nombre"><br>
-        Descripción: <textarea name="descripcion"></textarea><br>
-        Precio: <input type="number" step="0.01" name="precio"><br>
-        Disponible:
-        <select name="disponible">
+        <label for="nombre">Nombre:</label>
+        <input type="text" name="nombre" id="nombre" required>
+
+        <label for="descripcion">Descripción:</label>
+        <textarea name="descripcion" id="descripcion" rows="3" required></textarea>
+
+        <label for="precio">Precio:</label>
+        <input type="number" step="0.01" name="precio" id="precio" required>
+
+        <label for="disponible">Disponible:</label>
+        <select name="disponible" id="disponible" required>
             <option value="1">Sí</option>
             <option value="0">No</option>
-        </select><br>
+        </select>
+
         <button type="submit">Guardar</button>
     </form>
-</body>
-</html>
+</div>
+{% endblock %}
+
