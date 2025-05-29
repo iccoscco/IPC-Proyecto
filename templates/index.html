@@ -24,6 +24,36 @@
     </table>
 </div>
 
+<h2>Permisos</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Rol</th>
+                <th>Tabla</th>
+                <th>Puede Ver</th>
+                <th>Puede Agregar</th>
+                <th>Puede Modificar</th>
+                <th>Puede Eliminar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for permiso in permisos %}
+            <tr>
+                <td>{{ permiso.id }}</td>
+                <td>{{ permiso.nombre_rol }}</td>
+                <td>{{ permiso.tabla }}</td>
+                <td>{{ '✔️' if permiso.puede_ver else '❌' }}</td>
+                <td>{{ '✔️' if permiso.puede_agregar else '❌' }}</td>
+                <td>{{ '✔️' if permiso.puede_modificar else '❌' }}</td>
+                <td>{{ '✔️' if permiso.puede_eliminar else '❌' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 <h2>Menú</h2>
 <div class="table-responsive">
     <table class="pedidos-table">

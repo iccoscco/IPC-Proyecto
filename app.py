@@ -39,6 +39,13 @@ def index():
             cursor.execute("SELECT * FROM auditoria_acciones")
             auditorias = cursor.fetchall()
 
+            cursor.execute("""
+                SELECT p.id, r.nombre AS nombre_rol, p.tabla, p.puede_ver, p.puede_agregar, p.puede_modificar, p.puede_eliminar
+                FROM permisos p
+                JOIN roles r ON p.id_rol = r.id
+            """)
+            permisos = cursor.fetchall()
+
     return render_template(
         'index.html',
         usuarios=usuarios,
@@ -47,7 +54,8 @@ def index():
         pedidos=pedidos,
         detalles=detalles,
         registros_voz=registros_voz,
-        auditorias=auditorias
+        auditorias=auditorias,
+        permisos=permisos
     )
 
 # ==== USUARIOS ====
@@ -73,6 +81,51 @@ def guardar_usuario():
             cursor.execute(sql, (nombre, correo, id_rol))
         connection.commit()
     return redirect('/')
+
+# ==== PERMISOS ====
+@app.route('/permisos')
+def mostrar_permisos():
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id, nombre FROM roles")
+            roles = cursor.fetchall()
+
+            cursor.execute("SELECT * FROM permisos")
+            permisos = cursor.fetchall()
+
+            cursor.execute("SHOW TABLES")
+            tablas_raw = cursor.fetchall()
+            tablas = [list(t.values())[0] for t in tablas_raw]
+    
+    return render_template('permisos.html', permisos=permisos, roles=roles, tablas=tablas)
+
+@app.route('/guardar_permisos', methods=['POST'])
+def guardar_permisos():
+    id_rol = request.form['id_rol']
+    tabla = request.form['tabla']
+    puede_ver = 'puede_ver' in request.form
+    puede_agregar = 'puede_agregar' in request.form
+    puede_modificar = 'puede_modificar' in request.form
+    puede_eliminar = 'puede_eliminar' in request.form
+
+    print("Procesando:", id_rol, tabla, puede_ver, puede_agregar, puede_modificar, puede_eliminar)
+
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO permisos (id_rol, tabla, puede_ver, puede_agregar, puede_modificar, puede_eliminar)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE 
+                    puede_ver = VALUES(puede_ver),
+                    puede_agregar = VALUES(puede_agregar),
+                    puede_modificar = VALUES(puede_modificar),
+                    puede_eliminar = VALUES(puede_eliminar)
+            """, (id_rol, tabla, puede_ver, puede_agregar, puede_modificar, puede_eliminar))
+        connection.commit()
+    return redirect('/permisos')
+
 
 # ==== MENÚ ====
 @app.route('/menu')

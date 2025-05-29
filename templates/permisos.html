@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Gestionar Permisos{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Agregar o Editar Permiso</h1>
+    <form method="POST" action="{{ url_for('guardar_permisos') }}">
+        <label for="id_rol">Rol:</label>
+        <select id="id_rol" name="id_rol" required>
+            {% for rol in roles %}
+                <option value="{{ rol.id }}">{{ rol.nombre }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="tabla">Tabla:</label>
+        <select id="tabla" name="tabla" required>
+            {% for nombre_tabla in tablas %}
+                <option value="{{ nombre_tabla }}">{{ nombre_tabla }}</option>
+            {% endfor %}
+        </select>
+
+        <div class="checkbox-group">
+            <label><input type="checkbox" name="puede_ver"> Puede Ver</label>
+            <label><input type="checkbox" name="puede_agregar"> Puede Agregar</label>
+            <label><input type="checkbox" name="puede_modificar"> Puede Modificar</label>
+            <label><input type="checkbox" name="puede_eliminar"> Puede Eliminar</label>
+        </div>
+
+        <button type="submit">Guardar Permiso</button>
+    </form>
+</div>
+
+<hr>
+
+<div class="table-responsive">
+    <h2>Permisos Actuales</h2>
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Rol</th>
+                <th>Tabla</th>
+                <th>Ver</th>
+                <th>Agregar</th>
+                <th>Modificar</th>
+                <th>Eliminar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in permisos %}
+            <tr>
+                <td>{{ p.id }}</td>
+                <td>
+                    {% for rol in roles %}
+                        {% if rol.id == p.id_rol %}
+                            {{ rol.nombre }}
+                        {% endif %}
+                    {% endfor %}
+                </td>                
+                <td>{{ p.tabla }}</td>
+                <td>{{ '✔️' if p.puede_ver else '❌' }}</td>
+                <td>{{ '✔️' if p.puede_agregar else '❌' }}</td>
+                <td>{{ '✔️' if p.puede_modificar else '❌' }}</td>
+                <td>{{ '✔️' if p.puede_eliminar else '❌' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
