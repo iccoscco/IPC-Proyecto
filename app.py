@@ -1,7 +1,10 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session
+from avatar_routes import avatar_bp 
 import pymysql
 
 app = Flask(__name__)
+app.secret_key = 'IPC-Grup0'
+app.register_blueprint(avatar_bp)
 
 # Conexión a la base de datos
 def get_db_connection():
@@ -66,7 +69,9 @@ def usuarios():
         with connection.cursor() as cursor:
             cursor.execute("SELECT id, nombre FROM roles")
             roles = cursor.fetchall()
-    return render_template('usuarios.html', roles=roles)
+
+    avatar_url = session.get('avatar_url')  # <- Obtener la URL del avatar si existe
+    return render_template('usuarios.html', roles=roles, avatar_url=avatar_url)
 
 @app.route('/guardar_usuario', methods=['POST'])
 def guardar_usuario():
@@ -304,6 +309,10 @@ def guardar_auditoria():
             cursor.execute(sql, (id_usuario, rol, tabla, accion, descripcion, dispositivo, ip))
         connection.commit()
     return redirect('/auditoria')
+
+@app.route('/avatar')
+def gestionar_avatar():
+    return render_template('avatar.html')
 
 # ==== INICIAR APP ====
 if __name__ == '__main__':

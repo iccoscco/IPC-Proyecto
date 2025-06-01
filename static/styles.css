@@ -225,3 +225,30 @@ form textarea {
         min-width: 600px;
     }
 }
+
+#ui label {
+    display: inline-block;
+    margin-right: 15px;
+    font-weight: bold;
+}
+
+#ui select, #ui input[type="color"] {
+    margin-left: 5px;
+    vertical-align: middle;
+    padding: 3px 6px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+#ui button {
+    margin-left: 10px;
+    padding: 6px 12px;
+    border-radius: 5px;
+    border: none;
+    background-color: #3498db;
+    color: white;
+    cursor: pointer;
+}
+#ui button:hover {
+    background-color: #2980b9;
+}
