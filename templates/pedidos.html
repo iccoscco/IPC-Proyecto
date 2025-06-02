@@ -3,13 +3,36 @@
 {% block title %}Registrar Pedido{% endblock %}
 
 {% block content %}
+<h2>Pedidos</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th><th>ID Usuario</th><th>Estado</th><th>Origen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ped in pedidos %}
+            <tr>
+                <td>{{ ped.id }}</td>
+                <td>{{ ped.id_usuario }}</td>
+                <td>{{ ped.estado }}</td>
+                <td>{{ ped.origen }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 <div class="form-container">
     <h1>Registrar Pedido</h1>
     <form method="POST" action="/guardar_pedido">
         <label for="id_usuario">Usuario:</label>
-        <select name="id_usuario" id="id_usuario" required>
+        <select name="id_usuario" id="id_usuario" onchange="filtrarPedidos()" required>
             {% for usuario in usuarios %}
-                <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
+                <option value="{{ usuario.id }}" {% if usuario_filtrado == usuario.id|string %}selected{% endif %}>
+                    {{ usuario.nombre }}
+                </option>
             {% endfor %}
         </select>
 
@@ -30,6 +53,9 @@
         <button type="submit">Guardar</button>
     </form>
 </div>
+
+<script src="{{ url_for('static', filename='js/funciones.js') }}"></script>
+<script src="{{ url_for('static', filename='js/funciones_pedidos.js') }}"></script>
 {% endblock %}
 
 

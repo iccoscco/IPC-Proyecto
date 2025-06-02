@@ -7,7 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const armRight = document.getElementById('arm-right');
     const earLeft = document.getElementById('ear-left');
     const earRight = document.getElementById('ear-right');
+    const inearLeft = document.getElementById('in-ear-left');
+    const inearRight = document.getElementById('in-ear-right');
     const body = document.getElementById('body');
+    const lips = document.getElementById('lips');
   
 
   
@@ -21,6 +24,14 @@ document.addEventListener('DOMContentLoaded', () => {
       earLeft?.setAttribute('fill', color);
       earRight?.setAttribute('fill', color);
     });
+
+    // Cambiar sombras color piel
+    document.getElementById('colorPielSombras')?.addEventListener('input', e => {
+        const color = e.target.value;
+        lips?.setAttribute('fill', color);
+        inearLeft?.setAttribute('fill', color);
+        inearRight?.setAttribute('fill', color);
+      });
   
     // Cambiar color uniforme
     document.getElementById('colorUniforme')?.addEventListener('input', e => {

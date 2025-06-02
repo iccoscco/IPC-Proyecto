@@ -5,40 +5,27 @@ Detalle de Pedidos
 {% endblock %}
 
 {% block content %}
-<h1>Detalle de Pedidos</h1>
-
-<h2>Pedidos existentes</h2>
-<table border="1" cellpadding="5" cellspacing="0">
-    <thead>
-        <tr>
-            <th>ID Pedido</th>
-            <th>ID Usuario</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for pedido in pedidos %}
-        <tr>
-            <td>{{ pedido.id }}</td>
-            <td>{{ pedido.id_usuario }}</td>
-        </tr>
-        {% else %}
-        <tr>
-            <td colspan="2">No hay pedidos</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-<hr>
 
 <h2>Agregar detalle a un pedido</h2>
 <form action="/guardar_detalles_pedido" method="POST">
-    <label for="id_pedido">Seleccione pedido:</label>
+    <!-- SELECT de usuario -->
+    <label for="usuario">Seleccione usuario:</label>
+    <select id="usuario" name="id_usuario"  required>
+        <option value="" disabled selected>-- Seleccione usuario --</option>
+        {% for usuario in usuarios %}
+            <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
+        {% endfor %}
+    </select>
+
+    <!-- SELECT de pedidos de usuario -->
+    <label for="id_pedido">Seleccione pedido pendiente:</label>
     <select name="id_pedido" id="id_pedido" required>
         <option value="" disabled selected>-- Seleccione pedido --</option>
+        <!--       
         {% for pedido in pedidos %}
-            <option value="{{ pedido.id }}">{{ pedido.id }} (Usuario: {{ pedido.id_usuario }})</option>
-        {% endfor %}
+            <option value="{{ pedido.id }}">Pedido #{{ pedido.id }}</option>
+        {% endfor %} 
+        -->
     </select>
 
     <br><br>
@@ -65,17 +52,27 @@ Detalle de Pedidos
     <button type="submit">Guardar Todos los Detalles</button>
 </form>
 
-<script>
-    function agregarFila() {
-        const contenedor = document.getElementById('menu-container');
-        const nuevo = contenedor.children[0].cloneNode(true);
-        // Reiniciar valores
-        nuevo.querySelector('select').selectedIndex = 0;
-        nuevo.querySelector('input').value = 1;
-        contenedor.appendChild(nuevo);
-    }
-</script>
+<!-- Boton para iniciar el automata -->
+<div id="ui" style="margin: 20px 0;">
+    <button type="button" onclick="iniciarAutomata()">🗣 Iniciar pedido por voz</button>
+</div>
 
+<!-- Chat para conversación y depuración -->
+<div style="display: flex; gap: 20px;">
+    <!-- Chat principal -->
+    <div style="flex: 1; border: 1px solid #ccc; padding: 10px;">
+        <h3>🗣️ Conversación</h3>
+        <div id="chat" style="height: 300px; overflow-y: auto;"></div>
+    </div>
+
+    <!-- Chat técnico -->
+    <div style="flex: 1; border: 1px solid #aaa; padding: 10px; background-color: #f9f9f9;">
+        <h3>🧪 Depuración</h3>
+        <div id="debug" style="height: 300px; overflow-y: auto; font-size: 0.9em; color: #333;"></div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/funciones_detalle_pedido.js') }}"></script>
 {% endblock %}
 
 

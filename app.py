@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, jsonify
 from avatar_routes import avatar_bp 
 import pymysql
 
@@ -85,7 +85,7 @@ def guardar_usuario():
             sql = "INSERT INTO usuarios (nombre, correo, id_rol) VALUES (%s, %s, %s)"
             cursor.execute(sql, (nombre, correo, id_rol))
         connection.commit()
-    return redirect('/')
+    return redirect('/pedidos')
 
 # ==== PERMISOS ====
 @app.route('/permisos')
@@ -174,12 +174,24 @@ def guardar_ingrediente():
 # ==== PEDIDOS ====
 @app.route('/pedidos')
 def pedidos():
+    id_usuario = request.args.get('id_usuario')  # Captura el filtro desde la URL
+
     connection = get_db_connection()
     with connection:
         with connection.cursor() as cursor:
+            # Obtener lista de usuarios para el <select>
             cursor.execute("SELECT id, nombre FROM usuarios")
             usuarios = cursor.fetchall()
-    return render_template('pedidos.html', usuarios=usuarios)
+
+            # Obtener los pedidos, filtrando si se seleccionó un usuario
+            if id_usuario:
+                cursor.execute("SELECT * FROM pedidos WHERE id_usuario = %s", (id_usuario,))
+            else:
+                cursor.execute("SELECT * FROM pedidos")
+            pedidos = cursor.fetchall()
+
+    return render_template('pedidos.html', usuarios=usuarios, pedidos=pedidos, usuario_filtrado=id_usuario)
+
 
 @app.route('/guardar_pedido', methods=['POST'])
 def guardar_pedido():
@@ -198,7 +210,7 @@ def guardar_pedido():
             sql = "INSERT INTO pedidos (id_usuario, estado, origen) VALUES (%s, %s, %s)"
             cursor.execute(sql, (id_usuario, estado, origen))
         connection.commit()
-    return redirect('/')
+    return redirect('/detalle_pedido')
 
 # ==== DETALLE DE PEDIDO ====
 @app.route('/detalle_pedido')
@@ -206,11 +218,19 @@ def detalle_pedido():
     connection = get_db_connection()
     with connection:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT id, id_usuario FROM pedidos")
+            # Obtener todos los usuarios
+            cursor.execute("SELECT id, nombre FROM usuarios")
+            usuarios = cursor.fetchall()
+
+            # Obtener todos los pedidos con estado "pendiente"
+            cursor.execute("SELECT id, id_usuario FROM pedidos WHERE estado = 'pendiente'")
             pedidos = cursor.fetchall()
-            cursor.execute("SELECT id, nombre FROM menu WHERE disponible = TRUE")
+
+            # Obtener menú disponible
+            cursor.execute("SELECT id, nombre FROM menu")
             menu = cursor.fetchall()
-    return render_template('detalle_pedido.html', pedidos=pedidos, menu=menu)
+
+    return render_template('detalle_pedido.html', usuarios=usuarios, menu=menu, pedidos=pedidos)
 
 @app.route('/guardar_detalles_pedido', methods=['POST'])
 def guardar_detalles_pedido():
@@ -230,6 +250,19 @@ def guardar_detalles_pedido():
         connection.commit()
 
     return redirect('/detalle_pedido')
+
+@app.route('/pedidos_por_usuario')
+def pedidos_por_usuario():
+    usuario_id = request.args.get('usuario_id')
+
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id FROM pedidos WHERE estado = 'pendiente' AND id_usuario = %s", (usuario_id,))
+            pedidos = cursor.fetchall()
+    
+    return jsonify(pedidos)
+
 
 
 # ==== REGISTRO DE VOZ ====

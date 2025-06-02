@@ -1,10 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const avatar = document.getElementById('avatar');
 
-    // En lugar de solo los circulos 'eye-left' y 'eye-right',
-    // creamos grupos para cada ojo que contengan el ovalo blanco y el iris.
-
-    // Funcion para crear un ojo completo (ovalo + iris)
     function createEye(idPrefix, cx, cy) {
         let eyeGroup = document.getElementById(idPrefix + '-group');
         if (!eyeGroup) {
