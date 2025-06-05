@@ -1,23 +1,26 @@
-import logo from './logo.svg';
-import './App.css';
+// frontend/src/App.js
+import React, { useState } from 'react';
+import Sidebar from './widgets/Sidebar'; 
+import './App.css'; 
 
-function App() {
+function App({ children }) {
+  const [sidebarActive, setSidebarActive] = useState(false);
+
+  const toggleMenu = () => {
+    setSidebarActive(!sidebarActive);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <button className="menu-toggle" >☰</button>
+      <div className="container">
+        <div className="main-content">
+          {children}
+        </div>
+        <div className={sidebarActive ? 'active' : ''}>
+          <Sidebar />
+        </div>
+      </div>
     </div>
   );
 }
