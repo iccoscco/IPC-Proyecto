@@ -1,70 +1,39 @@
-# Getting Started with Create React App
+# Frontend React - IPC-Proyecto
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Este frontend fue creado con [Create React App](https://github.com/facebook/create-react-app) y forma parte del sistema de gestión para un restaurante, en conjunto con un backend en Flask.
 
-## Available Scripts
+## Descripción
 
-In the project directory, you can run:
+Permite la administración de usuarios, permisos, menú, ingredientes, pedidos, detalles de pedido, registros de voz y auditoría de acciones. Consume una API REST desarrollada en Flask.
 
-### `npm start`
+## Estructura del Proyecto
+frontend/ 
+│ 
+├── src/ 
+│ 
+├── components/ # Componentes principales (Usuarios, Permisos,etc.) 
+│ 
+├── widgets/ # Componentes reutilizables (Sidebar, etc.) 
+│ 
+├── App.js # Layout base 
+│   └── ...
+├── public/ 
+├── package.json 
+└── README.md
+## Instalación y Uso
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+1. Instala las dependencias:
+    ```bash
+    npm install
+2. Inicia el servidor de desarrollo:
+    ```bash
+    npm start
+    Abre http://localhost:3000 para ver la app en tu navegador.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Asegúrate de que el backend Flask esté corriendo y acepte peticiones desde este frontend (CORS habilitado).
+## Principales Librerías Usadas
+    react-router-dom: Navegación entre páginas.
+    axios: Consumo de la API Flask.
+## Componentes Principales
+1. Sidebar: Navegación lateral con enlaces a todas las secciones.
+2. Usuarios, Permisos, Menú, Ingredientes, Pedidos, Detalles, Registros de Voz, Auditoría: Cada uno como componente React, mostrando tablas y formularios según los datos recibidos del backend.
