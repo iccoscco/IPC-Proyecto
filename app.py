@@ -1,6 +1,10 @@
 from flask import Flask, render_template, request, redirect, session, jsonify
 from avatar_routes import avatar_bp 
 import pymysql
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = 'IPC-Grup0'
@@ -9,10 +13,10 @@ app.register_blueprint(avatar_bp)
 # Conexión a la base de datos
 def get_db_connection():
     return pymysql.connect(
-        host='localhost',
-        user='root',
-        password='',
-        db='sistema',
+        host=os.getenv('DB_HOST'),
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD'),
+        db=os.getenv('DB_NAME'),
         cursorclass=pymysql.cursors.DictCursor
     )
 
