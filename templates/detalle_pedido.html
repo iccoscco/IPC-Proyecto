@@ -52,25 +52,7 @@ Detalle de Pedidos
     <button type="submit">Guardar Todos los Detalles</button>
 </form>
 
-<!-- Boton para iniciar el automata -->
-<div id="ui" style="margin: 20px 0;">
-    <button type="button" onclick="iniciarAutomata()">🗣 Iniciar pedido por voz</button>
-</div>
-
-<!-- Chat para conversación y depuración -->
-<div style="display: flex; gap: 20px;">
-    <!-- Chat principal -->
-    <div style="flex: 1; border: 1px solid #ccc; padding: 10px;">
-        <h3>🗣️ Conversación</h3>
-        <div id="chat" style="height: 300px; overflow-y: auto;"></div>
-    </div>
-
-    <!-- Chat técnico -->
-    <div style="flex: 1; border: 1px solid #aaa; padding: 10px; background-color: #f9f9f9;">
-        <h3>🧪 Depuración</h3>
-        <div id="debug" style="height: 300px; overflow-y: auto; font-size: 0.9em; color: #333;"></div>
-    </div>
-</div>
+{% include "_automata.html" %}
 
 <script src="{{ url_for('static', filename='js/funciones_detalle_pedido.js') }}"></script>
 {% endblock %}

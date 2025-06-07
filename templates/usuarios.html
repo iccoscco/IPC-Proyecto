@@ -23,38 +23,6 @@
     </form>
 </div>
 
-<input type="hidden" id="usuario_id" value="{{ usuario_id }}">
+{% include "_automata.html" %}
 
-<div style="margin-top: 20px;">
-  <h3>Avatar actual:</h3>
-  <div id="avatar-container">
-    {% if avatar_svg %}
-      {{ avatar_svg | safe }}
-    {% else %}
-      <!-- Aquí puede ir un mensaje o nada -->
-      <p>No hay avatar disponible.</p>
-    {% endif %}
-  </div>
-</div>
-
-<!-- Boton para iniciar el automata -->
-<div id="ui" style="margin-bottom:10px;">
-    <button type="button" onclick="iniciarAutomata()">🗣 Iniciar registro por voz</button>
-</div>
-
-<div style="display: flex; gap: 20px;">
-    <!-- Chat principal -->
-    <div style="flex: 1; border: 1px solid #ccc; padding: 10px;">
-      <h3>🗣️ Conversación</h3>
-      <div id="chat" style="height: 300px; overflow-y: auto;"></div>
-    </div>
-  
-    <!-- Chat técnico -->
-    <div style="flex: 1; border: 1px solid #aaa; padding: 10px; background-color: #f9f9f9;">
-      <h3>🧪 Depuración</h3>
-      <div id="debug" style="height: 300px; overflow-y: auto; font-size: 0.9em; color: #333;"></div>
-    </div>
-</div>
-  
-<script src="{{ url_for('static', filename='js/funciones.js') }}"></script>
 {% endblock %}

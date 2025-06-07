@@ -24,6 +24,7 @@
     </table>
 </div>
 
+
 <div class="form-container">
     <h1>Registrar Pedido</h1>
     <form method="POST" action="/guardar_pedido">
@@ -54,8 +55,33 @@
     </form>
 </div>
 
-<script src="{{ url_for('static', filename='js/funciones.js') }}"></script>
-<script src="{{ url_for('static', filename='js/funciones_pedidos.js') }}"></script>
+<h2>Menú Disponible</h2>
+<div class="table-responsive">
+    <table class="menu-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Precio</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in menu %}
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.nombre }}</td>
+                <td>{{ item.descripcion }}</td>
+                <td>{{ item.precio }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+{% include "_automata.html" %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% endblock %}
 
 

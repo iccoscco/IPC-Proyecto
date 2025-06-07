@@ -84,8 +84,14 @@ def guardar_usuario():
         with connection.cursor() as cursor:
             sql = "INSERT INTO usuarios (nombre, correo, id_rol) VALUES (%s, %s, %s)"
             cursor.execute(sql, (nombre, correo, id_rol))
+            nuevo_id = cursor.lastrowid
         connection.commit()
-    return redirect('/pedidos')
+
+     # Guardar usuario en sesion (por navegador)
+    session['usuario_id'] = nuevo_id
+    session['usuario_nombre'] = nombre
+
+    return jsonify({'success': True, 'id_usuario': nuevo_id, 'nombre': nombre})
 
 # ==== PERMISOS ====
 @app.route('/permisos')
@@ -174,24 +180,31 @@ def guardar_ingrediente():
 # ==== PEDIDOS ====
 @app.route('/pedidos')
 def pedidos():
-    id_usuario = request.args.get('id_usuario')  # Captura el filtro desde la URL
+    id_usuario = request.args.get('id_usuario')
 
     connection = get_db_connection()
     with connection:
         with connection.cursor() as cursor:
-            # Obtener lista de usuarios para el <select>
             cursor.execute("SELECT id, nombre FROM usuarios")
             usuarios = cursor.fetchall()
 
-            # Obtener los pedidos, filtrando si se seleccionó un usuario
             if id_usuario:
                 cursor.execute("SELECT * FROM pedidos WHERE id_usuario = %s", (id_usuario,))
             else:
                 cursor.execute("SELECT * FROM pedidos")
             pedidos = cursor.fetchall()
 
-    return render_template('pedidos.html', usuarios=usuarios, pedidos=pedidos, usuario_filtrado=id_usuario)
+            # 👇 Agrega menú
+            cursor.execute("SELECT * FROM menu WHERE disponible = 1")
+            menu = cursor.fetchall()
 
+    return render_template(
+        'pedidos.html',
+        usuarios=usuarios,
+        pedidos=pedidos,
+        usuario_filtrado=id_usuario,
+        menu=menu
+    )
 
 @app.route('/guardar_pedido', methods=['POST'])
 def guardar_pedido():
@@ -205,12 +218,14 @@ def guardar_pedido():
             # Validar ID de usuario
             cursor.execute("SELECT id FROM usuarios WHERE id = %s", (id_usuario,))
             if not cursor.fetchone():
-                return "Error: ID de usuario no válido"
+                return jsonify({'success': False, 'error': 'ID de usuario no válido'})
 
             sql = "INSERT INTO pedidos (id_usuario, estado, origen) VALUES (%s, %s, %s)"
             cursor.execute(sql, (id_usuario, estado, origen))
+            nuevo_pedido_id = cursor.lastrowid  # Obtener el ID del nuevo pedido
         connection.commit()
-    return redirect('/detalle_pedido')
+
+    return jsonify({'success': True, 'id_pedido': nuevo_pedido_id}) 
 
 # ==== DETALLE DE PEDIDO ====
 @app.route('/detalle_pedido')
@@ -226,8 +241,8 @@ def detalle_pedido():
             cursor.execute("SELECT id, id_usuario FROM pedidos WHERE estado = 'pendiente'")
             pedidos = cursor.fetchall()
 
-            # Obtener menú disponible
-            cursor.execute("SELECT id, nombre FROM menu")
+            # Obtener menu disponible
+            cursor.execute("SELECT id, nombre FROM menu WHERE disponible = 1")
             menu = cursor.fetchall()
 
     return render_template('detalle_pedido.html', usuarios=usuarios, menu=menu, pedidos=pedidos)
@@ -242,7 +257,7 @@ def guardar_detalles_pedido():
     with connection:
         with connection.cursor() as cursor:
             for id_menu, cantidad in zip(ids_menu, cantidades):
-                # Validar si quieres o no aquí
+        
                 cursor.execute("""
                     INSERT INTO detalle_pedido (id_pedido, id_menu, cantidad)
                     VALUES (%s, %s, %s)
