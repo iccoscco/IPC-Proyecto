@@ -7,13 +7,13 @@ Proyecto del curso Ingeniería y Procesos Software
 Este proyecto es un sistema para la gestión de un restaurante, desarrollado con un backend en **Flask** (Python) y un frontend moderno en **React**. Permite la administración de usuarios, permisos, menú, ingredientes, pedidos, detalles de pedido, registros de voz y auditoría de acciones.
 
 ## Estructura del Proyecto
-IPC-Proyecto/ 
-│ 
-├── app.py # Backend Flask 
-├── requirements.txt # Dependencias Python 
-├── .env # Variables de entorno (conexión BD) 
-├── templates/ # (Migrado a React) Plantillas antiguas 
-├── static/ # Archivos estáticos (CSS, imágenes) 
+IPC-Proyecto/  
+│  
+├── app.py # Backend Flask  
+├── requirements.txt # Dependencias Python  
+├── .env # Variables de entorno (conexión BD)  
+├── templates/ # (Migrado a React) Plantillas antiguas  
+├── static/ # Archivos estáticos (CSS, imágenes)  
 └── frontend/ # Frontend React
 
 ## Instalación
