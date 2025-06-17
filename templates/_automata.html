@@ -33,11 +33,33 @@
 <script type="module">
   import { iniciarAutomata } from "{{ url_for('static', filename='js/automata/main.js') }}";
 
-  const btn = document.getElementById('btn-iniciar');
-  if (btn) {
-    btn.addEventListener('click', () => {
-      iniciarAutomata();
-    });
+  const ruta = window.location.pathname;
+  const params = new URLSearchParams(window.location.search);
+  const boton = document.getElementById('btn-iniciar');
+
+  // Función para saber si hay parámetros clave
+  const tieneIDs = () => {
+    return params.has('id_usuario') || params.has('id_pedido');
+  };
+
+  // Mostrar/ocultar el botón según la lógica
+  if (boton) {
+    if (tieneIDs()) {
+      boton.style.display = 'none';
+      iniciarAutomata();  // Se ejecuta automáticamente si hay ID
+    } else {
+      boton.style.display = 'inline-block';
+      boton.addEventListener('click', () => {
+        iniciarAutomata();
+      });
+    }
   }
+
+  // También podrías enviar los IDs al autómata si es necesario
+  window.contextoAutomata = {
+    ruta,
+    id_usuario: params.get('id_usuario') || null,
+    id_pedido: params.get('id_pedido') || null,
+  };
 </script>
-<!-- <script src="{{ url_for('static', filename='js/automata/main.js') }}"></script>  -->
+

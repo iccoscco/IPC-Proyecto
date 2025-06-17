@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}
+Vista de Pedido
+{% endblock %}
+
+{% block content %}
+<h2>Pedidos de {{ usuario.nombre }}</h2>
+
+{% if pedidos %}
+    {% for pedido in pedidos %}
+        <div style="margin-bottom: 2rem;">
+            <h3>Pedido #{{ pedido.id }}</h3>
+            <p>
+                <strong>Estado:</strong> 
+                <span class="estado-label estado-{{ pedido.estado|lower|replace(' ', '-') }}">
+                    {{ pedido.estado }}
+                </span>
+                {% if pedido.fecha %} - <strong>Fecha:</strong> {{ pedido.fecha.strftime('%d/%m/%Y') }}{% endif %}
+            </p>
+            
+
+            <div class="table-responsive">
+                <table class="pedidos-table">
+                    <thead>
+                        <tr>
+                            <th>Ítem</th>
+                            <th>Cantidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in detalles %}
+                            {% if item.id_pedido == pedido.id %}
+                            <tr>
+                                <td>{{ item.nombre_menu }}</td>
+                                <td>{{ item.cantidad }}</td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>No hay pedidos registrados para este usuario.</p>
+{% endif %}
+{% endblock %}
+
+
+
+

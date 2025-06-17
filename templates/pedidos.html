@@ -31,7 +31,7 @@
         <label for="id_usuario">Usuario:</label>
         <select name="id_usuario" id="id_usuario" onchange="filtrarPedidos()" required>
             {% for usuario in usuarios %}
-                <option value="{{ usuario.id }}" {% if usuario_filtrado == usuario.id|string %}selected{% endif %}>
+            <option value="{{ usuario.id }}" {% if usuario_filtrado|string == usuario.id|string %}selected{% endif %}>
                     {{ usuario.nombre }}
                 </option>
             {% endfor %}
@@ -81,7 +81,8 @@
 
 
 {% include "_automata.html" %}
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/automata/main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/funciones_pedidos.js') }}"></script>
 {% endblock %}
 
 

@@ -18,7 +18,7 @@ export function hablar(texto, callback = null) {
     sintesis.speak(utterance);
 }
 
-export function escuchar() {
+export function escuchar(pasoActual = 1, callbackManual = null) {
     if (!('webkitSpeechRecognition' in window)) {
         alert("Tu navegador no soporta reconocimiento de voz.");
         return;
@@ -34,7 +34,7 @@ export function escuchar() {
 
     let temporizador = setTimeout(() => {
         reconocimiento.stop();
-        hablar("No escuché nada. ¿Podrías repetir, por favor}?", escuchar);
+        hablar("No escuché nada. ¿Podrías repetir, por favor?", () => escuchar(pasoActual, callbackManual));
     }, tiempoMaximo);
 
     reconocimiento.onresult = function(event) {
@@ -42,15 +42,22 @@ export function escuchar() {
         const texto = event.results[0][0].transcript;
         mostrarEnChat(texto, 'usuario');
         reconocimiento.stop();
-        procesarRespuesta(texto);
+
+        if (callbackManual) {
+            callbackManual(texto);
+        } else {
+            procesarRespuesta(texto, pasoActual);
+        }
     };
 
     reconocimiento.onerror = function(event) {
         clearTimeout(temporizador);
         console.error("Error de reconocimiento:", event.error);
-        hablar("Ocurrió un error al reconocer tu voz. Intenta nuevamente.", escuchar);
+        hablar("Ocurrió un error al reconocer tu voz. Intenta nuevamente.", () => escuchar(pasoActual, callbackManual));
     };
 
     reconocimiento.start();
 }
+
+
 

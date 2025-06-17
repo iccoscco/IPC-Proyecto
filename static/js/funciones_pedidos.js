@@ -1,4 +1,4 @@
 function filtrarPedidos() {
-    const selected = document.getElementById('id_usuario').value;
-    window.location.href = '/pedidos?id_usuario=' + selected;
+    const idUsuario = document.getElementById('id_usuario').value;
+    window.location.href = `/pedidos?id_usuario=${idUsuario}`;
 }

@@ -180,7 +180,8 @@ def guardar_ingrediente():
 # ==== PEDIDOS ====
 @app.route('/pedidos')
 def pedidos():
-    id_usuario = request.args.get('id_usuario')
+    # Obtener el ID del usuario desde la URL o desde la sesión
+    id_usuario = request.args.get('id_usuario') or session.get('usuario_id')
 
     connection = get_db_connection()
     with connection:
@@ -194,17 +195,22 @@ def pedidos():
                 cursor.execute("SELECT * FROM pedidos")
             pedidos = cursor.fetchall()
 
-            # 👇 Agrega menú
             cursor.execute("SELECT * FROM menu WHERE disponible = 1")
             menu = cursor.fetchall()
+
+    # Obtener avatar SVG desde la sesion si esta disponible
+    avatar_svg = session.get('avatar_svg')
 
     return render_template(
         'pedidos.html',
         usuarios=usuarios,
         pedidos=pedidos,
         usuario_filtrado=id_usuario,
-        menu=menu
+        menu=menu,
+        usuario_id=id_usuario,      # para el automata
+        avatar_svg=avatar_svg       # para mostrar el avatar
     )
+
 
 @app.route('/guardar_pedido', methods=['POST'])
 def guardar_pedido():
@@ -265,6 +271,54 @@ def guardar_detalles_pedido():
         connection.commit()
 
     return redirect('/detalle_pedido')
+
+@app.route('/pedidos_usuario/<int:id_usuario>')
+def pedidos_usuario_json(id_usuario):
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT id FROM pedidos 
+                WHERE id_usuario = %s AND estado = 'pendiente'
+            """, (id_usuario,))
+            pedidos = cursor.fetchall()
+
+    return jsonify({ 'pedidos': pedidos })
+
+@app.route('/vista_pedido')
+def vista_pedido():
+    id_usuario = request.args.get('id_usuario')
+
+    if not id_usuario:
+        return "ID de usuario no proporcionado", 400
+
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            # Obtener nombre del usuario
+            cursor.execute("SELECT nombre FROM usuarios WHERE id = %s", (id_usuario,))
+            usuario = cursor.fetchone()
+
+            # Obtener pedidos del usuario
+            cursor.execute("""
+                SELECT p.id, p.estado, p.fecha
+                FROM pedidos p
+                WHERE p.id_usuario = %s
+            """, (id_usuario,))
+            pedidos = cursor.fetchall()
+
+            # Obtener detalles de cada pedido
+            cursor.execute("""
+                SELECT dp.id_pedido, m.nombre AS nombre_menu, dp.cantidad
+                FROM detalle_pedido dp
+                JOIN menu m ON dp.id_menu = m.id
+                JOIN pedidos p ON dp.id_pedido = p.id
+                WHERE p.id_usuario = %s
+            """, (id_usuario,))
+            detalles = cursor.fetchall()
+
+    return render_template('vista_pedido.html', usuario=usuario, pedidos=pedidos, detalles=detalles)
+
 
 @app.route('/pedidos_por_usuario')
 def pedidos_por_usuario():

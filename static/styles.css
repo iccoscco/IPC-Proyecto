@@ -252,3 +252,26 @@ form textarea {
 #ui button:hover {
     background-color: #2980b9;
 }
+
+
+/* Estados de Pedidos */
+.estado-label {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: bold;
+    color: white;
+    text-transform: capitalize;
+}
+
+.estado-pendiente {
+    background-color: #ffc107; /* amarillo */
+    color: #333;
+}
+
+.estado-en-cocina {
+    background-color: #17a2b8; /* azul */
+}
+
+.estado-servido {
+    background-color: #28a745; /* verde */
+}
