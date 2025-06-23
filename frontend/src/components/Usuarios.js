@@ -84,6 +84,17 @@ function AgregarUsuario() {
           🗣 Iniciar registro por voz
         </button>
       </div>
+
+      <div style={{ display: 'flex', gap: '20px' }}>
+        <div style={{ flex: 1, border: '1px solid #ccc', padding: 10 }}>
+          <h3>🗣️ Conversación</h3>
+          <div id="chat" style={{ height: 300, overflowY: 'auto' }}></div>
+        </div>
+        <div style={{ flex: 1, border: '1px solid #aaa', padding: 10, backgroundColor: '#f9f9f9' }}>
+          <h3>🧪 Depuración</h3>
+          <div id="debug" style={{ height: 300, overflowY: 'auto', fontSize: '0.9em', color: '#333' }}></div>
+        </div>
+      </div>
     </div>
   );
 }
