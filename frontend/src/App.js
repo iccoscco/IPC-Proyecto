@@ -1,6 +1,6 @@
 // frontend/src/App.js
 import React, { useState } from 'react';
-import Sidebar from './widgets/Sidebar'; 
+import Sidebar from './Widgets/sidebar'; 
 import './App.css'; 
 
 function App({ children }) {
