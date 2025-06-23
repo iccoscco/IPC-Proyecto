@@ -34,6 +34,17 @@ function AgregarUsuario() {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleSubmit = async e => {
+    e.preventDefault();
+    try {
+      await axios.post('/guardar_usuario', formData);
+      alert('Usuario guardado exitosamente');
+    } catch (error) {
+      console.error('Error al guardar:', error);
+      alert('Error al guardar el usuario');
+    }
+  };
+
   return (
     <div className="form-container">
       <h1>Nuevo Usuario</h1>
