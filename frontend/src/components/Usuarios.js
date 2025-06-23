@@ -78,6 +78,12 @@ function AgregarUsuario() {
           )}
         </div>
       </div>
+
+      <div id="ui" style={{ marginBottom: 10 }}>
+        <button type="button" onClick={() => window.iniciarAutomata?.()}>
+          🗣 Iniciar registro por voz
+        </button>
+      </div>
     </div>
   );
 }
