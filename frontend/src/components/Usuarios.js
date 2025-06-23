@@ -65,6 +65,19 @@ function AgregarUsuario() {
 
         <button type="submit">Guardar</button>
       </form>
+
+      <input type="hidden" id="usuario_id" value={usuarioId || ''} />
+
+      <div style={{ marginTop: 20 }}>
+        <h3>Avatar actual:</h3>
+        <div id="avatar-container">
+          {avatarSvg ? (
+            <div dangerouslySetInnerHTML={{ __html: avatarSvg }} />
+          ) : (
+            <p>No hay avatar disponible.</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
