@@ -7,47 +7,53 @@ Detalle de Pedidos
 {% block content %}
 
 <h2>Agregar detalle a un pedido</h2>
-<form action="/guardar_detalles_pedido" method="POST">
-    <!-- SELECT de usuario -->
-    <label for="usuario">Seleccione usuario:</label>
-    <select id="usuario" name="id_usuario"  required>
-        <option value="" disabled selected>-- Seleccione usuario --</option>
-        {% for usuario in usuarios %}
-            <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
-        {% endfor %}
-    </select>
-
-    <!-- SELECT de pedidos de usuario -->
-    <label for="id_pedido">Seleccione pedido pendiente:</label>
-    <select name="id_pedido" id="id_pedido" required>
-        <option value="" disabled selected>-- Seleccione pedido --</option>
-    </select>
-
-    <br><br>
-
-    <div id="menu-container">
-        <div class="menu-item">
-            <label>Menú:</label>
-            <select name="id_menu[]" required>
-                <option value="" disabled selected>-- Seleccione menú --</option>
-                {% for item in menu %}
-                    <option value="{{ item.id }}">{{ item.nombre }}</option>
+<div class="layout-dos-columnas">
+    <div class="form-container">
+        <form action="/guardar_detalles_pedido" method="POST">
+            <!-- SELECT de usuario -->
+            <label for="usuario">Seleccione usuario:</label>
+            <select id="usuario" name="id_usuario"  required>
+                <option value="" disabled selected>-- Seleccione usuario --</option>
+                {% for usuario in usuarios %}
+                    <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
                 {% endfor %}
             </select>
 
-            <label>Cantidad:</label>
-            <input type="number" name="cantidad[]" min="1" value="1" required>
-        </div>
+            <!-- SELECT de pedidos de usuario -->
+            <label for="id_pedido">Seleccione pedido pendiente:</label>
+            <select name="id_pedido" id="id_pedido" required>
+                <option value="" disabled selected>-- Seleccione pedido --</option>
+            </select>
+
+            <br><br>
+
+            <div id="menu-container">
+                <div class="menu-item">
+                    <label>Menú:</label>
+                    <select name="id_menu[]" required>
+                        <option value="" disabled selected>-- Seleccione menú --</option>
+                        {% for item in menu %}
+                            <option value="{{ item.id }}">{{ item.nombre }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label>Cantidad:</label>
+                    <input type="number" name="cantidad[]" min="1" value="1" required>
+                </div>
+            </div>
+
+            <button type="button" onclick="agregarFila()">+ Añadir otro ítem</button>
+
+            <br><br>
+
+            <button type="submit">Guardar Todos los Detalles</button>
+        </form>
     </div>
 
-    <button type="button" onclick="agregarFila()">+ Añadir otro ítem</button>
-
-    <br><br>
-
-    <button type="submit">Guardar Todos los Detalles</button>
-</form>
-
-{% include "_automata.html" %}
+    <div class="automata-container">
+    {% include "_automata.html" %}
+    </div>
+</div>
 
 <script src="{{ url_for('static', filename='js/funciones_detalle_pedido.js') }}"></script>
 {% endblock %}

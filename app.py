@@ -309,7 +309,7 @@ def vista_pedido():
 
             # Obtener detalles de cada pedido
             cursor.execute("""
-                SELECT dp.id_pedido, m.nombre AS nombre_menu, dp.cantidad
+                SELECT dp.id_pedido, m.nombre AS nombre_menu, m.descripcion, m.precio, dp.cantidad
                 FROM detalle_pedido dp
                 JOIN menu m ON dp.id_menu = m.id
                 JOIN pedidos p ON dp.id_pedido = p.id
@@ -317,7 +317,16 @@ def vista_pedido():
             """, (id_usuario,))
             detalles = cursor.fetchall()
 
-    return render_template('vista_pedido.html', usuario=usuario, pedidos=pedidos, detalles=detalles)
+    # Calcular total por pedido en backend
+    totales_por_pedido = {}
+    for pedido in pedidos:
+        total = 0
+        for item in detalles:
+            if item['id_pedido'] == pedido['id']:
+                total += item['precio'] * item['cantidad']
+        totales_por_pedido[pedido['id']] = total
+
+    return render_template('vista_pedido.html', usuario=usuario, pedidos=pedidos, detalles=detalles, totales_por_pedido=totales_por_pedido)
 
 
 @app.route('/pedidos_por_usuario')
@@ -332,6 +341,54 @@ def pedidos_por_usuario():
     
     return jsonify(pedidos)
 
+@app.route('/actualizar_estado', methods=['POST'])
+def actualizar_estado():
+    data = request.get_json()
+    id_pedido = data['id_pedido']
+    nuevo_estado = data['nuevo_estado']
+
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("UPDATE pedidos SET estado = %s WHERE id = %s", (nuevo_estado, id_pedido))
+        connection.commit()
+    return jsonify({'success': True})
+
+@app.route('/vista_cocinero')
+def vista_cocinero():
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            # Obtener todos los pedidos
+            cursor.execute("SELECT * FROM pedidos")
+            pedidos = cursor.fetchall()
+
+            # Obtener detalles de cada pedido (menu + cantidad)
+            cursor.execute("""
+                SELECT dp.id_pedido, dp.id_menu, m.nombre AS nombre_menu, dp.cantidad
+                FROM detalle_pedido dp
+                JOIN menu m ON dp.id_menu = m.id
+            """)
+            detalles = cursor.fetchall()
+
+            # Obtener ingredientes por menú
+            cursor.execute("""
+                SELECT 
+                    mi.id_menu, 
+                    i.nombre AS nombre_ingrediente, 
+                    mi.cantidad_necesaria AS cantidad, 
+                    i.unidad_medida
+                FROM menu_ingredientes mi
+                JOIN ingredientes i ON mi.id_ingrediente = i.id
+            """)
+            ingredientes_por_menu = cursor.fetchall()
+
+    return render_template(
+        'vista_cocinero.html',
+        pedidos=pedidos,
+        detalles=detalles,
+        ingredientes_por_menu=ingredientes_por_menu
+    )
 
 
 # ==== REGISTRO DE VOZ ====
@@ -389,13 +446,15 @@ def auditoria():
 @app.route('/guardar_auditoria', methods=['POST'])
 def guardar_auditoria():
     id_usuario = request.form['id_usuario']
-    rol = request.form['rol']
+    rol_usuario = request.form['rol_usuario']  # Cambiar para que coincida con HTML
     tabla = request.form['tabla']
     accion = request.form['accion']
     descripcion = request.form['descripcion']
-    dispositivo = request.form['dispositivo']
-    ip = request.form['ip']
-    
+
+    # Capturar desde headers y request
+    dispositivo = request.headers.get('User-Agent')
+    ip = request.remote_addr
+
     connection = get_db_connection()
     with connection:
         with connection.cursor() as cursor:
@@ -403,12 +462,11 @@ def guardar_auditoria():
             if not cursor.fetchone():
                 return "Error: ID de usuario no válido"
             
-            sql = """
+            cursor.execute("""
                 INSERT INTO auditoria_acciones
                 (id_usuario, rol_usuario, tabla_afectada, accion, descripcion, dispositivo, ip_origen)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """
-            cursor.execute(sql, (id_usuario, rol, tabla, accion, descripcion, dispositivo, ip))
+            """, (id_usuario, rol_usuario, tabla, accion, descripcion, dispositivo, ip))
         connection.commit()
     return redirect('/auditoria')
 

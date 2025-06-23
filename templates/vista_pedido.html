@@ -18,26 +18,40 @@ Vista de Pedido
                 </span>
                 {% if pedido.fecha %} - <strong>Fecha:</strong> {{ pedido.fecha.strftime('%d/%m/%Y') }}{% endif %}
             </p>
-            
+            {% set total_pedido = 0 %}
 
             <div class="table-responsive">
                 <table class="pedidos-table">
                     <thead>
                         <tr>
                             <th>Ítem</th>
+                            <th>Descripción</th>
                             <th>Cantidad</th>
+                            <th>Precio Unitario</th>
+                            <th>Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in detalles %}
                             {% if item.id_pedido == pedido.id %}
-                            <tr>
-                                <td>{{ item.nombre_menu }}</td>
-                                <td>{{ item.cantidad }}</td>
-                            </tr>
+                                {% set subtotal = item.precio * item.cantidad %}
+                                {% set total_pedido = total_pedido + subtotal %}
+                                <tr>
+                                    <td>{{ item.nombre_menu }}</td>
+                                    <td>{{ item.descripcion }}</td>
+                                    <td>{{ item.cantidad }}</td>
+                                    <td>S/ {{ '%.2f'|format(item.precio) }}</td>
+                                    <td>S/ {{ '%.2f'|format(subtotal) }}</td>
+                                </tr>
                             {% endif %}
                         {% endfor %}
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" style="text-align: right;"><strong>Total del pedido:</strong></td>
+                            <td><strong>S/ {{ '%.2f'|format(totales_por_pedido[pedido.id]) }}</strong></td>
+                        </tr>
+                    </tfoot>                    
                 </table>
             </div>
         </div>

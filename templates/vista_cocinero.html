@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Vista del Cocinero{% endblock %}
+
+{% block content %}
+<h2>Panel del Cocinero</h2>
+<!-- Contadores por estado -->
+{% set contador_pendiente = pedidos | selectattr("estado", "equalto", "pendiente") | list | length %}
+{% set contador_en_cocina = pedidos | selectattr("estado", "equalto", "en cocina") | list | length %}
+{% set contador_servido = pedidos | selectattr("estado", "equalto", "servido") | list | length %}
+
+<div class="contador-estados">
+    <div class="contador pendiente">Pendientes: {{ contador_pendiente }}</div>
+    <div class="contador en-cocina">En cocina: {{ contador_en_cocina }}</div>
+    <div class="contador servido">Servidos: {{ contador_servido }}</div>
+</div>
+
+<!-- Agrupar ingredientes por menú -->
+{% set ingredientes_por_menu_dict = {} %}
+{% for ing in ingredientes_por_menu %}
+    {% set _ = ingredientes_por_menu_dict.setdefault(ing.id_menu, []).append(ing) %}
+{% endfor %}
+
+<div class="panel-cocinero">
+    {% set estados = ['pendiente', 'en cocina', 'servido'] %}
+    {% for estado in estados %}
+    <div style="flex: 1;">
+        <h3 class="titulo-estado {{ estado|lower|replace(' ', '-') }}">{{ estado|capitalize }}</h3>
+        <div style="min-height: 200px; border: 1px solid #ccc; padding: 1rem;">
+            {% for pedido in pedidos if pedido.estado == estado %}
+                <div class="tarjeta-pedido {{ pedido.estado|lower|replace(' ', '-') }}" style="padding: 1rem; margin-bottom: 1rem; border-radius: 8px;">
+                    <h4>Pedido #{{ pedido.id }}</h4>
+                    <p class="fecha-pedido">
+                        {{ pedido.fecha.strftime('%d/%m/%Y %H:%M') if pedido.fecha }}
+                    </p>
+
+                    <ul>
+                        {% for item in detalles if item.id_pedido == pedido.id %}
+                        <li 
+                            onmouseenter="mostrarIngredientes(event, {{ item.id_menu }})" 
+                            onmouseleave="ocultarIngredientes()"
+                        >
+                            {{ item.nombre_menu }} x {{ item.cantidad }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                    {% if estado == 'pendiente' %}
+                        <button onclick="actualizarEstado({{ pedido.id }}, 'en cocina')">Empezar</button>
+                        <button onclick="actualizarEstado({{ pedido.id }}, 'cancelado')">Cancelar</button>
+                    {% elif estado == 'en cocina' %}
+                        <button onclick="actualizarEstado({{ pedido.id }}, 'pausado')">Pausar</button>
+                        <button onclick="actualizarEstado({{ pedido.id }}, 'servido')">Finalizar</button>
+                    {% elif estado == 'servido' %}
+                        <button onclick="imprimirPedido({{ pedido.id }})">Imprimir</button>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal flotante de ingredientes -->
+<div id="ingredientes-modal" style="
+    display:none; 
+    position:absolute; 
+    background:white; 
+    border:1px solid #ccc; 
+    padding:1rem; 
+    box-shadow:0 2px 8px rgba(0,0,0,0.2); 
+    z-index:1000; 
+    max-width:300px; 
+    font-size:0.9rem;
+    border-radius: 8px;
+"></div>
+
+
+<script>
+function actualizarEstado(idPedido, nuevoEstado) {
+    fetch('/actualizar_estado', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_pedido: idPedido, nuevo_estado: nuevoEstado })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert("Error al actualizar estado");
+        }
+    });
+}
+
+function imprimirPedido(idPedido) {
+    alert("Imprimir pedido #" + idPedido);
+}
+
+const ingredientesData = {{ ingredientes_por_menu_dict | tojson }};
+
+function mostrarIngredientes(event, id_menu) {
+    const modal = document.getElementById('ingredientes-modal');
+    const ingredientes = ingredientesData[id_menu];
+    if (!ingredientes) return;
+
+    let html = "<strong>Ingredientes:</strong><ul>";
+    ingredientes.forEach(i => {
+        html += `<li>${i.nombre_ingrediente} - ${i.cantidad} ${i.unidad_medida}</li>`;
+    });
+    html += "</ul>";
+
+    modal.innerHTML = html;
+    modal.style.display = 'block';
+    modal.style.left = (event.pageX + 10) + 'px';
+    modal.style.top = (event.pageY + 10) + 'px';
+}
+
+function ocultarIngredientes() {
+    document.getElementById('ingredientes-modal').style.display = 'none';
+}
+
+</script>
+{% endblock %}
+
+

@@ -3,61 +3,66 @@
 {% block title %}Registrar Pedido{% endblock %}
 
 {% block content %}
-<h2>Pedidos</h2>
-<div class="table-responsive">
-    <table class="pedidos-table">
-        <thead>
-            <tr>
-                <th>ID</th><th>ID Usuario</th><th>Estado</th><th>Origen</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for ped in pedidos %}
-            <tr>
-                <td>{{ ped.id }}</td>
-                <td>{{ ped.id_usuario }}</td>
-                <td>{{ ped.estado }}</td>
-                <td>{{ ped.origen }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+<div class="layout-dos-columnas">
+    <div class="form-container">
+        <h2>Pedidos</h2>
+        <div class="table-responsive">
+            <table class="pedidos-table">
+                <thead>
+                    <tr>
+                        <th>ID</th><th>ID Usuario</th><th>Estado</th><th>Origen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ped in pedidos %}
+                    <tr>
+                        <td>{{ ped.id }}</td>
+                        <td>{{ ped.id_usuario }}</td>
+                        <td>{{ ped.estado }}</td>
+                        <td>{{ ped.origen }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
+        <h2>Registrar Pedido</h2>
+        <form method="POST" action="/guardar_pedido">
+            <label for="id_usuario">Usuario:</label>
+            <select name="id_usuario" id="id_usuario" onchange="filtrarPedidos()" required>
+                {% for usuario in usuarios %}
+                <option value="{{ usuario.id }}" {% if usuario_filtrado|string == usuario.id|string %}selected{% endif %}>
+                        {{ usuario.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
 
-<div class="form-container">
-    <h1>Registrar Pedido</h1>
-    <form method="POST" action="/guardar_pedido">
-        <label for="id_usuario">Usuario:</label>
-        <select name="id_usuario" id="id_usuario" onchange="filtrarPedidos()" required>
-            {% for usuario in usuarios %}
-            <option value="{{ usuario.id }}" {% if usuario_filtrado|string == usuario.id|string %}selected{% endif %}>
-                    {{ usuario.nombre }}
-                </option>
-            {% endfor %}
-        </select>
+            <label for="estado">Estado:</label>
+            <select name="estado" id="estado" required>
+                <option value="pendiente">Pendiente</option>
+                <option value="en cocina">En cocina</option>
+                <option value="servido">Servido</option>
+                <option value="cancelado">Cancelado</option>
+            </select>
 
-        <label for="estado">Estado:</label>
-        <select name="estado" id="estado" required>
-            <option value="pendiente">Pendiente</option>
-            <option value="en cocina">En cocina</option>
-            <option value="servido">Servido</option>
-            <option value="cancelado">Cancelado</option>
-        </select>
+            <label for="origen">Origen:</label>
+            <select name="origen" id="origen" required>
+                <option value="voz">Voz</option>
+                <option value="tactil">Táctil</option>
+            </select>
 
-        <label for="origen">Origen:</label>
-        <select name="origen" id="origen" required>
-            <option value="voz">Voz</option>
-            <option value="tactil">Táctil</option>
-        </select>
+            <button type="submit">Guardar</button>
+        </form>
+    </div>
 
-        <button type="submit">Guardar</button>
-    </form>
+    <div class="automata-container">
+    {% include "_automata.html" %}
+    </div>
 </div>
 
 <h2>Menú Disponible</h2>
 <div class="table-responsive">
-    <table class="menu-table">
+    <table class="pedidos-table">
         <thead>
             <tr>
                 <th>ID</th>
@@ -79,8 +84,6 @@
     </table>
 </div>
 
-
-{% include "_automata.html" %}
 <script type="module" src="{{ url_for('static', filename='js/automata/main.js') }}"></script>
 <script src="{{ url_for('static', filename='js/funciones_pedidos.js') }}"></script>
 {% endblock %}
