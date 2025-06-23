@@ -30,9 +30,30 @@ function AgregarUsuario() {
     fetchData();
   }, []);
 
+  const handleChange = e => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
   return (
     <div className="form-container">
       <h1>Nuevo Usuario</h1>
+      <form onSubmit={handleSubmit}>
+        <label htmlFor="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" required onChange={handleChange} />
+
+        <label htmlFor="correo">Correo:</label>
+        <input type="email" id="correo" name="correo" required onChange={handleChange} />
+
+        <label htmlFor="rol">Rol:</label>
+        <select id="rol" name="id_rol" required onChange={handleChange}>
+          <option value="">-- Selecciona un rol --</option>
+          {roles.map(rol => (
+            <option key={rol.id} value={rol.id}>{rol.nombre}</option>
+          ))}
+        </select>
+
+        <button type="submit">Guardar</button>
+      </form>
     </div>
   );
 }
