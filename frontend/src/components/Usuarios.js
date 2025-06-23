@@ -47,7 +47,26 @@ function AgregarUsuario() {
 
   return (
     <div className="form-container">
-      <h1>Nuevo Usuario</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h1 style={{ margin: 0 }}>Nuevo Usuario</h1>
+        <Link
+          to="/index"
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#007BFF',
+            color: '#fff',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            fontWeight: 'bold',
+            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
+            transition: 'background-color 0.3s',
+          }}
+          onMouseOver={e => (e.target.style.backgroundColor = '#0056b3')}
+          onMouseOut={e => (e.target.style.backgroundColor = '#007BFF')}
+        >
+          🏠 Volver al inicio
+        </Link>
+      </div>
       <form onSubmit={handleSubmit}>
         <label htmlFor="nombre">Nombre:</label>
         <input type="text" id="nombre" name="nombre" required onChange={handleChange} />
