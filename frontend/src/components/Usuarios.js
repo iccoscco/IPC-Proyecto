@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 function AgregarUsuario() { 
   const [roles, setRoles] = useState([]);
@@ -67,6 +68,7 @@ function AgregarUsuario() {
           🏠 Volver al inicio
         </Link>
       </div>
+      
       <form onSubmit={handleSubmit}>
         <label htmlFor="nombre">Nombre:</label>
         <input type="text" id="nombre" name="nombre" required onChange={handleChange} />
