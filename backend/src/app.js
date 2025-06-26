@@ -16,6 +16,8 @@ app.use(session({
 
 // Importar rutas
 const usuariosRoutes = require('./routes/usuarios.routes');
-app.use('/', usuariosRoutes); // aquí registras la ruta POST
+app.use('/', usuariosRoutes);
+const permisosRoutes = require('./routes/permisos.routes');
+app.use('/', permisosRoutes); 
 
 module.exports = app;
