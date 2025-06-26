@@ -19,5 +19,7 @@ const usuariosRoutes = require('./routes/usuarios.routes');
 app.use('/', usuariosRoutes);
 const permisosRoutes = require('./routes/permisos.routes');
 app.use('/', permisosRoutes); 
+const menuRoutes = require('./routes/menu.routes');
+app.use('/', menuRoutes);
 
 module.exports = app;
