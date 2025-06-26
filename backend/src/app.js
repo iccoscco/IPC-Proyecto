@@ -27,5 +27,7 @@ const pedidosRoutes = require('./routes/pedidos.routes');
 app.use('/', pedidosRoutes);
 const detallePedidoRoutes = require('./routes/detalle_pedido.routes');
 app.use('/', detallePedidoRoutes);
+const auditoriaRoutes = require('./routes/auditoria.routes');
+app.use('/', auditoriaRoutes);
 
 module.exports = app;
