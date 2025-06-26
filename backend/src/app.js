@@ -14,8 +14,8 @@ app.use(session({
   saveUninitialized: true
 }));
 
-// Rutas
+// Importar rutas
 const usuariosRoutes = require('./routes/usuarios.routes');
-app.use('/', usuariosRoutes); // <-- conecta la ruta /usuarios
+app.use('/', usuariosRoutes); // aquí registras la ruta POST
 
 module.exports = app;
