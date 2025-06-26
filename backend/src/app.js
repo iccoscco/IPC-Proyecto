@@ -1,17 +1,21 @@
 const express = require('express');
-const getConnection = require('./config/db');
+const session = require('express-session');
+const path = require('path');
+require('dotenv').config();
 
 const app = express();
 
-app.get('/db', async (req, res) => {
-  try {
-    const connection = await getConnection();
-    const [rows] = await connection.execute('SELECT 1 + 1 AS resultado');
-    res.send(`✅ Conexión exitosa. Resultado: ${rows[0].resultado}`);
-  } catch (error) {
-    console.error('❌ Error de conexión:', error.message);
-    res.status(500).send('❌ Error al conectar a la base de datos');
-  }
-});
+// Middlewares
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'IPC-Grup0',
+  resave: false,
+  saveUninitialized: true
+}));
+
+// Rutas
+const usuariosRoutes = require('./routes/usuarios.routes');
+app.use('/', usuariosRoutes); // <-- conecta la ruta /usuarios
 
 module.exports = app;
