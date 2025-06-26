@@ -23,5 +23,9 @@ const menuRoutes = require('./routes/menu.routes');
 app.use('/', menuRoutes);
 const ingredientesRoutes = require('./routes/ingredientes.routes');
 app.use('/', ingredientesRoutes);
+const pedidosRoutes = require('./routes/pedidos.routes');
+app.use('/', pedidosRoutes);
+const detallePedidoRoutes = require('./routes/detalle_pedido.routes');
+app.use('/', detallePedidoRoutes);
 
 module.exports = app;
