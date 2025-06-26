@@ -61,27 +61,18 @@
 </div>
 
 <h2>Menú Disponible</h2>
-<div class="table-responsive">
-    <table class="pedidos-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Descripción</th>
-                <th>Precio</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in menu %}
-            <tr>
-                <td>{{ item.id }}</td>
-                <td>{{ item.nombre }}</td>
-                <td>{{ item.descripcion }}</td>
-                <td>{{ item.precio }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="menu-catalogo">
+    {% for item in menu %}
+    <div class="menu-card">
+        <div class="menu-id">{{ item.id }}</div>
+        <img src="{{ item.imagen_url or url_for('static', filename='img/default_plato.jpg') }}" alt="{{ item.nombre }}">
+        <div class="menu-info">
+            <h3>{{ item.nombre }}</h3>
+            <p>{{ item.descripcion }}</p>
+            <p class="precio">S/ {{ '%.2f'|format(item.precio) }}</p>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 
 <script type="module" src="{{ url_for('static', filename='js/automata/main.js') }}"></script>

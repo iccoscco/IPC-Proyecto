@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Menú{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Gestión del Menú</h1>
+    <table class="tabla-edicion">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Imagen</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Precio</th>
+                <th>Disponible</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in menu %}
+            <tr>
+                <form method="POST" action="{{ url_for('actualizar_menu', id=item.id) }}" enctype="multipart/form-data">
+                    <td>{{ item.id }}</td>
+                    <td>
+                        {% if item.imagen_url %}
+                            <img src="{{ item.imagen_url }}" alt="Imagen">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='img/menu/placeholder.png') }}" alt="Sin imagen">
+                        {% endif %}
+                        <div class="contenedor-subida">
+                            <label class="boton-subir-imagen">
+                                Elegir imagen
+                                <input type="file" name="imagen" class="input-imagen" accept="image/*">
+                            </label>
+                            <div class="nombre-archivo">Ningún archivo seleccionado</div>
+                          </div>                          
+                          
+                    </td>
+                    <td><input type="text" name="nombre" value="{{ item.nombre }}" required></td>
+                    <td><input type="text" name="descripcion" value="{{ item.descripcion }}" required></td>
+                    <td><input type="number" step="0.01" name="precio" value="{{ item.precio }}" required></td>
+                    <td>
+                        <select name="disponible" required>
+                            <option value="1" {% if item.disponible == 1 %}selected{% endif %}>Sí</option>
+                            <option value="0" {% if item.disponible == 0 %}selected{% endif %}>No</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button type="submit" class="boton-editar">Actualizar</button>
+                        <a href="{{ url_for('eliminar_menu', id=item.id) }}" class="boton-eliminar">Eliminar</a>
+                    </td>
+                </form>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>    
+</div>
+<script src="{{ url_for('static', filename='js/funciones_menu.js') }}"></script>
+{% endblock %}

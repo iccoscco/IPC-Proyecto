@@ -1,8 +1,11 @@
 from flask import Flask, render_template, request, redirect, session, jsonify
 from avatar_routes import avatar_bp 
 import pymysql
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'img', 'menu')
 app.secret_key = 'IPC-Grup0'
 app.register_blueprint(avatar_bp)
 
@@ -93,6 +96,45 @@ def guardar_usuario():
 
     return jsonify({'success': True, 'id_usuario': nuevo_id, 'nombre': nombre})
 
+
+@app.route('/editar_usuarios')
+def editar_usuarios():
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM usuarios")
+            usuarios = cursor.fetchall()
+
+            cursor.execute("SELECT id, nombre FROM roles")
+            roles = cursor.fetchall()
+
+    return render_template('editar_usuarios.html', usuarios=usuarios, roles=roles)
+
+@app.route('/actualizar_usuario/<int:id>', methods=['POST'])
+def actualizar_usuario(id):
+    nombre = request.form['nombre']
+    correo = request.form['correo']
+    id_rol = request.form['id_rol']
+
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            sql = "UPDATE usuarios SET nombre=%s, correo=%s, id_rol=%s WHERE id=%s"
+            cursor.execute(sql, (nombre, correo, id_rol, id))
+        connection.commit()
+
+    return redirect('/editar_usuarios')
+
+@app.route('/eliminar_usuario/<int:id>')
+def eliminar_usuario(id):
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM usuarios WHERE id = %s", (id,))
+        connection.commit()
+
+    return redirect('/editar_usuarios')
+
 # ==== PERMISOS ====
 @app.route('/permisos')
 def mostrar_permisos():
@@ -137,7 +179,6 @@ def guardar_permisos():
         connection.commit()
     return redirect('/permisos')
 
-
 # ==== MENÚ ====
 @app.route('/menu')
 def menu():
@@ -149,14 +190,75 @@ def guardar_menu():
     descripcion = request.form['descripcion']
     precio = request.form['precio']
     disponible = request.form['disponible']
+
+    imagen = request.files.get('imagen')
+    imagen_url = None
+
+    if imagen and imagen.filename != '':
+        filename = secure_filename(imagen.filename)
+        ruta = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        imagen.save(ruta)
+        imagen_url = f"/static/img/menu/{filename}"
     
     connection = get_db_connection()
     with connection:
         with connection.cursor() as cursor:
-            sql = "INSERT INTO menu (nombre, descripcion, precio, disponible) VALUES (%s, %s, %s, %s)"
-            cursor.execute(sql, (nombre, descripcion, precio, disponible))
+            sql = "INSERT INTO menu (nombre, descripcion, precio, disponible, imagen_url) VALUES (%s, %s, %s, %s, %s)"
+            cursor.execute(sql, (nombre, descripcion, precio, disponible, imagen_url))
         connection.commit()
     return redirect('/')
+
+@app.route('/editar_menu')
+def editar_menu():
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM menu")
+            menu = cursor.fetchall()
+    return render_template('editar_menu.html', menu=menu)
+
+@app.route('/actualizar_menu/<int:id>', methods=['POST'])
+def actualizar_menu(id):
+    nombre = request.form['nombre']
+    descripcion = request.form['descripcion']
+    precio = request.form['precio']
+    disponible = request.form['disponible']
+
+    imagen = request.files.get('imagen')
+    imagen_url = None
+
+    if imagen and imagen.filename != '':
+        filename = secure_filename(imagen.filename)
+        ruta = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        imagen.save(ruta)
+        imagen_url = f"/static/img/menu/{filename}"
+
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            if imagen_url:
+                sql = """
+                    UPDATE menu SET nombre=%s, descripcion=%s, precio=%s, disponible=%s, imagen_url=%s WHERE id=%s
+                """
+                cursor.execute(sql, (nombre, descripcion, precio, disponible, imagen_url, id))
+            else:
+                sql = """
+                    UPDATE menu SET nombre=%s, descripcion=%s, precio=%s, disponible=%s WHERE id=%s
+                """
+                cursor.execute(sql, (nombre, descripcion, precio, disponible, id))
+        connection.commit()
+    return redirect('/editar_menu')
+
+
+@app.route('/eliminar_menu/<int:id>')
+def eliminar_menu(id):
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM menu WHERE id = %s", (id,))
+        connection.commit()
+    return redirect('/editar_menu')
+
 
 # ==== INGREDIENTES ====
 @app.route('/ingredientes')
@@ -176,6 +278,44 @@ def guardar_ingrediente():
             cursor.execute(sql, (nombre, cantidad, unidad))
         connection.commit()
     return redirect('/')
+
+@app.route('/editar_ingredientes')
+def editar_ingredientes():
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM ingredientes")
+            ingredientes = cursor.fetchall()
+    return render_template('editar_ingredientes.html', ingredientes=ingredientes)
+
+
+@app.route('/actualizar_ingrediente/<int:id>', methods=['POST'])
+def actualizar_ingrediente(id):
+    nombre = request.form['nombre']
+    cantidad = request.form['cantidad']
+    unidad = request.form['unidad']
+    
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            sql = """
+                UPDATE ingredientes 
+                SET nombre=%s, cantidad_disponible=%s, unidad_medida=%s 
+                WHERE id=%s
+            """
+            cursor.execute(sql, (nombre, cantidad, unidad, id))
+        connection.commit()
+    return redirect('/editar_ingredientes')
+
+
+@app.route('/eliminar_ingrediente/<int:id>')
+def eliminar_ingrediente(id):
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM ingredientes WHERE id = %s", (id,))
+        connection.commit()
+    return redirect('/editar_ingredientes')
 
 # ==== PEDIDOS ====
 @app.route('/pedidos')
@@ -233,6 +373,50 @@ def guardar_pedido():
 
     return jsonify({'success': True, 'id_pedido': nuevo_pedido_id}) 
 
+@app.route('/editar_pedidos')
+def editar_pedidos():
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT p.*, u.nombre AS nombre_usuario 
+                FROM pedidos p 
+                JOIN usuarios u ON p.id_usuario = u.id
+            """)
+            pedidos = cursor.fetchall()
+
+            cursor.execute("SELECT id, nombre FROM usuarios")
+            usuarios = cursor.fetchall()
+
+    return render_template('editar_pedidos.html', pedidos=pedidos, usuarios=usuarios)
+
+
+@app.route('/actualizar_pedido/<int:id>', methods=['POST'])
+def actualizar_pedido(id):
+    id_usuario = request.form['id_usuario']
+    estado = request.form['estado']
+    origen = request.form['origen']
+
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            sql = """
+                UPDATE pedidos SET id_usuario=%s, estado=%s, origen=%s WHERE id=%s
+            """
+            cursor.execute(sql, (id_usuario, estado, origen, id))
+        connection.commit()
+    return redirect('/editar_pedidos')
+
+
+@app.route('/eliminar_pedido/<int:id>')
+def eliminar_pedido(id):
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM pedidos WHERE id = %s", (id,))
+        connection.commit()
+    return redirect('/editar_pedidos')
+
 # ==== DETALLE DE PEDIDO ====
 @app.route('/detalle_pedido')
 def detalle_pedido():
@@ -252,6 +436,8 @@ def detalle_pedido():
             menu = cursor.fetchall()
 
     return render_template('detalle_pedido.html', usuarios=usuarios, menu=menu, pedidos=pedidos)
+
+
 
 @app.route('/guardar_detalles_pedido', methods=['POST'])
 def guardar_detalles_pedido():

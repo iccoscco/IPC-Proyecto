@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Usuarios{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Gestión de Usuarios</h1>
+    <table class="tabla-edicion">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in usuarios %}
+            <tr>
+                <form method="POST" action="{{ url_for('actualizar_usuario', id=user.id) }}">
+                    <td>{{ user.id }}</td>
+                    <td><input type="text" name="nombre" value="{{ user.nombre }}" required></td>
+                    <td><input type="email" name="correo" value="{{ user.correo }}" required></td>
+                    <td>
+                        <select name="id_rol" required>
+                            {% for rol in roles %}
+                                <option value="{{ rol.id }}" {% if rol.id == user.id_rol %}selected{% endif %}>{{ rol.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <button type="submit" class="boton-editar">Actualizar</button>
+                        <a href="{{ url_for('eliminar_usuario', id=user.id) }}" class="boton-eliminar"
+                           onclick="return confirm('¿Estás seguro de eliminar este usuario?');">
+                           Eliminar
+                        </a>
+                    </td>
+                </form>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,15 +1,35 @@
 <div class="sidebar" id="sidebar">
     <h1>Menú</h1>
-    <a href="/usuarios">Registrar Usuarios</a>
+    <div class="submenu">
+        <button class="submenu-btn">Usuarios ▾</button>
+        <div class="submenu-content">
+            <a href="/usuarios">Registrar Usuarios</a>
+            <a href="/editar_usuarios">Editar Usuarios</a>
+        </div>
+    </div>
     <a href="/permisos">Registrar Permisos</a>
-    <a href="/menu">Registrar Menú</a>
-    <a href="/ingredientes">Registrar Ingredientes</a>
-    <a href="/pedidos">Registrar Pedido</a>
-    <a href="/detalle_pedido">Detalle de Pedido</a>
+    <div class="submenu">
+        <button class="submenu-btn">Menú ▾</button>
+        <div class="submenu-content">
+            <a href="/menu">Registrar Menú</a>
+            <a href="/editar_menu">Editar Menú</a>
+            <a href="/ingredientes">Registrar Ingredientes</a>
+            <a href="/editar_ingredientes">Editar Ingredientes</a>
+        </div>
+    </div>
+    <div class="submenu">
+        <button class="submenu-btn">Pedidos ▾</button>
+        <div class="submenu-content">
+            <a href="/pedidos">Registrar Pedido</a>
+            <a href="/editar_pedidos">Editar Pedidos</a>
+            <a href="/detalle_pedido">Detalle de Pedido</a>
+        </div>
+    </div>
     <a href="/registro_voz">Registro de Voz</a>
     <a href="/auditoria">Auditoría</a>
     <a href="/avatar">Avatar</a>
 </div>
+<script src="{{ url_for('static', filename='js/funciones_sidebar.js') }}"></script>
 
 
 
