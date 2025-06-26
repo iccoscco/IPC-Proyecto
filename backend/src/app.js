@@ -29,5 +29,7 @@ const detallePedidoRoutes = require('./routes/detalle_pedido.routes');
 app.use('/', detallePedidoRoutes);
 const auditoriaRoutes = require('./routes/auditoria.routes');
 app.use('/', auditoriaRoutes);
+const registroVozRoutes = require('./routes/registro_voz.routes');
+app.use('/', registroVozRoutes);
 
 module.exports = app;
