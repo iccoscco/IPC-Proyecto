@@ -21,5 +21,7 @@ const permisosRoutes = require('./routes/permisos.routes');
 app.use('/', permisosRoutes); 
 const menuRoutes = require('./routes/menu.routes');
 app.use('/', menuRoutes);
+const ingredientesRoutes = require('./routes/ingredientes.routes');
+app.use('/', ingredientesRoutes);
 
 module.exports = app;
