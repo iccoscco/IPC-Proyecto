@@ -7,7 +7,6 @@
             <a href="/editar_usuarios">Editar Usuarios</a>
         </div>
     </div>
-    <a href="/permisos">Registrar Permisos</a>
     <div class="submenu">
         <button class="submenu-btn">Menú ▾</button>
         <div class="submenu-content">
@@ -21,13 +20,29 @@
         <button class="submenu-btn">Pedidos ▾</button>
         <div class="submenu-content">
             <a href="/pedidos">Registrar Pedido</a>
-            <a href="/editar_pedidos">Editar Pedidos</a>
             <a href="/detalle_pedido">Detalle de Pedido</a>
+            <a href="/vista_pedido">Buscar Pedido</a>
+            <a href="/editar_pedidos">Editar Pedidos</a>
         </div>
     </div>
-    <a href="/registro_voz">Registro de Voz</a>
-    <a href="/auditoria">Auditoría</a>
-    <a href="/avatar">Avatar</a>
+    <div class="submenu">
+        <button class="submenu-btn">Cocina ▾</button>
+        <div class="submenu-content">
+            <a href="/vista_cocinero">Lista de Pedidos</a>
+            <a href="/detalle_pedido">Detalle de Pedido</a>
+            <a href="/editar_pedidos">Editar Pedidos</a>
+        </div>
+    </div>
+    <div class="submenu">
+        <button class="submenu-btn">Configuración ▾</button>
+        <div class="submenu-content">
+            <a href="/permisos">Registrar Permisos</a>
+            <a href="/registro_voz">Registrar comandos de Voz</a>
+            <a href="/auditoria">Auditoría</a>
+            <a href="/tablas">Tablas</a>
+            <a href="/avatar">Avatar</a>
+        </div>
+    </div>
 </div>
 <script src="{{ url_for('static', filename='js/funciones_sidebar.js') }}"></script>
 

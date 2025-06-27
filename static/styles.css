@@ -20,6 +20,79 @@ body {
     min-height: 100vh;
 }
 
+.bienvenida-container {
+    background-image: url('/static/img/portada_restaurante.jpg');
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    color: #fff;
+    position: relative;
+}
+
+.bienvenida-container::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5); /* Oscurecer fondo */
+    z-index: 0;
+}
+
+.bienvenida-contenido {
+    position: relative;
+    z-index: 1;
+    max-width: 600px;
+}
+
+.bienvenida-contenido h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.bienvenida-contenido h1 span {
+    color: #ffc107;
+}
+
+.bienvenida-contenido p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.botones {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.boton {
+    background-color: #4e54c8;
+    color: white;
+    padding: 0.8rem 1.6rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.boton:hover {
+    background-color: #6366f1;
+}
+
+.boton.secundario {
+    background-color: #ffc107;
+    color: #333;
+}
+
+.boton.secundario:hover {
+    background-color: #e0a800;
+}
+
+
 /* Distribución en columnas 50% y 50% */
 .fila-dos-columnas {
     display: flex;
@@ -76,7 +149,7 @@ body {
   /* En escritorio */
 @media (min-width: 769px) {
     .form-container {
-      flex-basis: 38%;
+      flex-basis: 37%;
     }
   
     .automata-container {
@@ -455,7 +528,7 @@ form textarea {
     text-align: center;
 }
   
-/* Estilo tabla de pedidos y su detalle*/
+/* === TABLAS ESTILO NORMAL ESCRITORIO === */
 .pedidos-table {
     width: 100%;
     border-collapse: collapse;
@@ -495,9 +568,64 @@ form textarea {
     margin-bottom: 2rem;
 }
 
+/* === TABLAS RESPONSIVE A TARJETAS === */
 @media (max-width: 768px) {
-    .pedidos-table {
-        min-width: 600px;
+    .pedidos-table,
+    .pedidos-table thead,
+    .pedidos-table tbody,
+    .pedidos-table th,
+    .pedidos-table td,
+    .pedidos-table tr {
+        display: block;
+        width: 100%;
+    }
+
+    .pedidos-table thead {
+        display: none;
+    }
+
+    .pedidos-table tr {
+        background: linear-gradient(135deg, #f9f9fc, #eef2ff);
+        margin-bottom: 1rem;
+        border: 1px solid #dfe3f0;
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+        transition: transform 0.2s ease;
+    }
+
+    .pedidos-table tr:hover {
+        transform: scale(1.02);
+    }
+
+    .pedidos-table td {
+        display: flex;
+        justify-content: flex-start;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid #e1e4ec;
+        font-size: 0.95rem;
+        color: #333;
+    }
+
+    .pedidos-table td:last-child {
+        border-bottom: none;
+    }
+
+    .pedidos-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #4e54c8;
+        flex-basis: 120px;
+        flex-shrink: 0;
+        text-align: left;
+    }
+
+    .pedidos-table td span,
+    .pedidos-table td div,
+    .pedidos-table td p {
+        margin: 0;
+        text-align: left;
     }
 }
 
@@ -836,3 +964,35 @@ form textarea {
     font-size: 0.9rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
+
+.boton-acordeon {
+    background-color: #6c757d;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 4px;
+    font-size: 0.95rem;
+}
+
+.boton-acordeon:hover {
+    background-color: #5a6268;
+}
+
+.fila-detalle {
+    background-color: #f9f9f9;
+}
+
+.tabla-subdetalle {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.tabla-subdetalle th, .tabla-subdetalle td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+

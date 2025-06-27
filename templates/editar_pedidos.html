@@ -17,6 +17,7 @@
         </thead>
         <tbody>
             {% for pedido in pedidos %}
+            <!-- Fila principal del pedido -->
             <tr>
                 <form method="POST" action="{{ url_for('actualizar_pedido', id=pedido.id) }}">
                     <td>{{ pedido.id }}</td>
@@ -49,15 +50,78 @@
 
                     <td>
                         <button type="submit" class="boton-editar">Actualizar</button>
-                        <a href="{{ url_for('eliminar_pedido', id=pedido.id) }}" class="boton-eliminar"
-                           onclick="return confirm('¿Seguro que quieres eliminar este pedido?');">Eliminar</a>
+                        {% if pedidos_relacionados[pedido.id] %}
+                            <button class="boton-eliminar" disabled title="Tiene registros relacionados">
+                                🚫 Eliminar
+                            </button>
+                        {% else %}
+                            <a href="{{ url_for('eliminar_pedido', id=pedido.id) }}" class="boton-eliminar"
+                               onclick="return confirm('¿Estás seguro de eliminar este pedido?');">
+                               🗑 Eliminar
+                            </a>
+                        {% endif %}
+                        <button type="button" class="boton-acordeon" onclick="toggleDetalle('{{ pedido.id }}')">
+                            📦 Detalle
+                        </button>
                     </td>
                 </form>
+            </tr>
+
+            <!-- Fila oculta del detalle del pedido -->
+            <tr id="detalle-{{ pedido.id }}" class="fila-detalle" style="display: none;">
+                <td colspan="5">
+                    <table class="tabla-subdetalle">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Menú</th>
+                                <th>Cantidad</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detalle in detalles_por_pedido[pedido.id] %}
+                            <tr>
+                                <form method="POST" action="{{ url_for('actualizar_detalle_pedido', id=detalle.id) }}">
+                                    <td>{{ detalle.id }}</td>
+                                    <td>
+                                        <select name="id_menu" required>
+                                            {% for item in menu %}
+                                            <option value="{{ item.id }}" {% if item.id == detalle.id_menu %}selected{% endif %}>
+                                                {{ item.nombre }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="cantidad" value="{{ detalle.cantidad }}" min="1" required>
+                                    </td>
+                                    <td>
+                                        <button type="submit" class="boton-editar">Actualizar</button>
+                                        <a href="{{ url_for('eliminar_detalle_pedido', id=detalle.id) }}" class="boton-eliminar"
+                                           onclick="return confirm('¿Seguro que quieres eliminar este detalle?');">
+                                           🗑 Eliminar
+                                        </a>
+                                    </td>
+                                </form>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
+<script>
+    function toggleDetalle(id) {
+        const fila = document.getElementById('detalle-' + id);
+        fila.style.display = (fila.style.display === 'none' || fila.style.display === '') ? 'table-row' : 'none';
+    }
+</script>
 {% endblock %}
+
 
 

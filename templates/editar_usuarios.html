@@ -5,6 +5,7 @@
 {% block content %}
 <div class="form-container">
     <h1>Gestión de Usuarios</h1>
+    
     <table class="tabla-edicion">
         <thead>
             <tr>
@@ -31,10 +32,16 @@
                     </td>
                     <td>
                         <button type="submit" class="boton-editar">Actualizar</button>
-                        <a href="{{ url_for('eliminar_usuario', id=user.id) }}" class="boton-eliminar"
-                           onclick="return confirm('¿Estás seguro de eliminar este usuario?');">
-                           Eliminar
-                        </a>
+                        {% if usuarios_relacionados[user.id] %}
+                            <button class="boton-eliminar" disabled title="Tiene registros relacionados">
+                                🚫 Eliminar
+                            </button>
+                        {% else %}
+                            <a href="{{ url_for('eliminar_usuario', id=user.id) }}" class="boton-eliminar"
+                               onclick="return confirm('¿Estás seguro de eliminar este usuario?');">
+                               🗑 Eliminar
+                            </a>
+                        {% endif %}
                     </td>
                 </form>
             </tr>

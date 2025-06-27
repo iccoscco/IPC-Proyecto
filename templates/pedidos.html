@@ -10,20 +10,23 @@
             <table class="pedidos-table">
                 <thead>
                     <tr>
-                        <th>ID</th><th>ID Usuario</th><th>Estado</th><th>Origen</th>
+                        <th>ID</th>
+                        <th>ID Usuario</th>
+                        <th>Estado</th>
+                        <th>Origen</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for ped in pedidos %}
                     <tr>
-                        <td>{{ ped.id }}</td>
-                        <td>{{ ped.id_usuario }}</td>
-                        <td>{{ ped.estado }}</td>
-                        <td>{{ ped.origen }}</td>
+                        <td data-label="ID">{{ ped.id }}</td>
+                        <td data-label="ID Usuario">{{ ped.id_usuario }}</td>
+                        <td data-label="Estado">{{ ped.estado }}</td>
+                        <td data-label="Origen">{{ ped.origen }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table>            
         </div>
 
         <h2>Registrar Pedido</h2>

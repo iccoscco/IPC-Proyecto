@@ -3,6 +3,7 @@ from avatar_routes import avatar_bp
 import pymysql
 import os
 from werkzeug.utils import secure_filename
+from pymysql.err import IntegrityError
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'img', 'menu')
@@ -21,6 +22,10 @@ def get_db_connection():
 
 @app.route('/')
 def index():
+    return render_template('index.html')
+
+@app.route('/tablas')
+def tablas():
     connection = get_db_connection()
     with connection:
         with connection.cursor() as cursor:
@@ -53,7 +58,7 @@ def index():
             permisos = cursor.fetchall()
 
     return render_template(
-        'index.html',
+        'tablas.html',
         usuarios=usuarios,
         menu=menu,
         ingredientes=ingredientes,
@@ -102,13 +107,42 @@ def editar_usuarios():
     connection = get_db_connection()
     with connection:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM usuarios")
+            # Obtener usuarios con rol
+            cursor.execute("""
+                SELECT u.*, r.nombre AS rol_nombre 
+                FROM usuarios u 
+                JOIN roles r ON u.id_rol = r.id
+            """)
             usuarios = cursor.fetchall()
 
+            # Obtener roles
             cursor.execute("SELECT id, nombre FROM roles")
             roles = cursor.fetchall()
 
-    return render_template('editar_usuarios.html', usuarios=usuarios, roles=roles)
+            # Verificar relaciones para cada usuario
+            usuarios_relacionados = {}
+            for usuario in usuarios:
+                user_id = usuario['id']
+                relacionado = False
+
+                # Verificar en pedidos
+                cursor.execute("SELECT COUNT(*) AS total FROM pedidos WHERE id_usuario = %s", (user_id,))
+                if cursor.fetchone()['total'] > 0:
+                    relacionado = True
+
+                # Verificar en auditoria
+                cursor.execute("SELECT COUNT(*) AS total FROM auditoria_acciones WHERE id_usuario = %s", (user_id,))
+                if cursor.fetchone()['total'] > 0:
+                    relacionado = True
+
+                usuarios_relacionados[user_id] = relacionado
+
+    return render_template(
+        'editar_usuarios.html',
+        usuarios=usuarios,
+        roles=roles,
+        usuarios_relacionados=usuarios_relacionados
+    )
 
 @app.route('/actualizar_usuario/<int:id>', methods=['POST'])
 def actualizar_usuario(id):
@@ -378,6 +412,7 @@ def editar_pedidos():
     connection = get_db_connection()
     with connection:
         with connection.cursor() as cursor:
+            # Traer pedidos con nombre del usuario
             cursor.execute("""
                 SELECT p.*, u.nombre AS nombre_usuario 
                 FROM pedidos p 
@@ -385,10 +420,37 @@ def editar_pedidos():
             """)
             pedidos = cursor.fetchall()
 
+            # Traer usuarios
             cursor.execute("SELECT id, nombre FROM usuarios")
             usuarios = cursor.fetchall()
 
-    return render_template('editar_pedidos.html', pedidos=pedidos, usuarios=usuarios)
+            # Traer menú
+            cursor.execute("SELECT * FROM menu")
+            menu = cursor.fetchall()
+
+            # Traer detalles de pedido
+            cursor.execute("SELECT * FROM detalle_pedido")
+            detalles = cursor.fetchall()
+
+    # Agrupar detalle por id_pedido
+    detalles_por_pedido = {}
+    for detalle in detalles:
+        detalles_por_pedido.setdefault(detalle['id_pedido'], []).append(detalle)
+
+    # Verificar si un pedido tiene detalles relacionados
+    pedidos_relacionados = {}
+    for pedido in pedidos:
+        id_pedido = pedido['id']
+        pedidos_relacionados[id_pedido] = id_pedido in detalles_por_pedido and len(detalles_por_pedido[id_pedido]) > 0
+
+    return render_template(
+        'editar_pedidos.html',
+        pedidos=pedidos,
+        usuarios=usuarios,
+        menu=menu,
+        detalles_por_pedido=detalles_por_pedido,
+        pedidos_relacionados=pedidos_relacionados  
+    )
 
 
 @app.route('/actualizar_pedido/<int:id>', methods=['POST'])
@@ -457,6 +519,33 @@ def guardar_detalles_pedido():
         connection.commit()
 
     return redirect('/detalle_pedido')
+
+@app.route('/actualizar_detalle_pedido/<int:id>', methods=['POST'])
+def actualizar_detalle_pedido(id):
+    id_menu = request.form['id_menu']
+    cantidad = request.form['cantidad']
+
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            sql = """
+                UPDATE detalle_pedido 
+                SET id_menu=%s, cantidad=%s 
+                WHERE id=%s
+            """
+            cursor.execute(sql, (id_menu, cantidad, id))
+        connection.commit()
+    return redirect('/editar_pedidos')
+
+@app.route('/eliminar_detalle_pedido/<int:id>')
+def eliminar_detalle_pedido(id):
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM detalle_pedido WHERE id = %s", (id,))
+        connection.commit()
+    return redirect('/editar_pedidos')
+
 
 @app.route('/pedidos_usuario/<int:id_usuario>')
 def pedidos_usuario_json(id_usuario):

@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Usuarios</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+            <tr>
+                <td data-label="ID">{{ usuario.id }}</td>
+                <td data-label="Nombre">{{ usuario.nombre }}</td>
+                <td data-label="Correo">{{ usuario.correo }}</td>
+                <td data-label="Rol">{{ usuario.id_rol }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2>Permisos</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Rol</th>
+                <th>Tabla</th>
+                <th>Puede Ver</th>
+                <th>Puede Agregar</th>
+                <th>Puede Modificar</th>
+                <th>Puede Eliminar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for permiso in permisos %}
+            <tr>
+                <td data-label="ID">{{ permiso.id }}</td>
+                <td data-label="Rol">{{ permiso.nombre_rol }}</td>
+                <td data-label="Tabla">{{ permiso.tabla }}</td>
+                <td data-label="Puede Ver">{{ '✔️' if permiso.puede_ver else '❌' }}</td>
+                <td data-label="Puede Agregar">{{ '✔️' if permiso.puede_agregar else '❌' }}</td>
+                <td data-label="Puede Modificar">{{ '✔️' if permiso.puede_modificar else '❌' }}</td>
+                <td data-label="Puede Eliminar">{{ '✔️' if permiso.puede_eliminar else '❌' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2>Menú</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Precio</th>
+                <th>Disponible</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in menu %}
+            <tr>
+                <td data-label="ID">{{ item.id }}</td>
+                <td data-label="Nombre">{{ item.nombre }}</td>
+                <td data-label="Descripción">{{ item.descripcion }}</td>
+                <td data-label="Precio">S/ {{ '%.2f'|format(item.precio) }}</td>
+                <td data-label="Disponible">
+                    {% if item.disponible == 1 %}✔️{% else %}❌{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2>Ingredientes</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Cantidad</th>
+                <th>Unidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ing in ingredientes %}
+            <tr>
+                <td data-label="ID">{{ ing.id }}</td>
+                <td data-label="Nombre">{{ ing.nombre }}</td>
+                <td data-label="Cantidad">{{ ing.cantidad_disponible }}</td>
+                <td data-label="Unidad">{{ ing.unidad_medida }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2>Pedidos</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>ID Usuario</th>
+                <th>Estado</th>
+                <th>Origen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ped in pedidos %}
+            <tr>
+                <td data-label="ID">{{ ped.id }}</td>
+                <td data-label="ID Usuario">{{ ped.id_usuario }}</td>
+                <td data-label="Estado">{{ ped.estado }}</td>
+                <td data-label="Origen">{{ ped.origen }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2>Detalles de Pedido</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>ID Pedido</th>
+                <th>ID Menú</th>
+                <th>Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in detalles %}
+            <tr>
+                <td data-label="ID">{{ d.id }}</td>
+                <td data-label="ID Pedido">{{ d.id_pedido }}</td>
+                <td data-label="ID Menú">{{ d.id_menu }}</td>
+                <td data-label="Cantidad">{{ d.cantidad }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2>Registros de Voz</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>ID Pedido</th>
+                <th>Texto</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rv in registros_voz %}
+            <tr>
+                <td data-label="ID">{{ rv.id }}</td>
+                <td data-label="ID Pedido">{{ rv.id_pedido }}</td>
+                <td data-label="Texto">{{ rv.texto_reconocido }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2>Auditoría</h2>
+<div class="table-responsive">
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>ID Usuario</th>
+                <th>Rol</th>
+                <th>Tabla</th>
+                <th>Acción</th>
+                <th>Descripción</th>
+                <th>Dispositivo</th>
+                <th>IP</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for aud in auditorias %}
+            <tr>
+                <td data-label="ID">{{ aud.id }}</td>
+                <td data-label="ID Usuario">{{ aud.id_usuario }}</td>
+                <td data-label="Rol">{{ aud.rol_usuario }}</td>
+                <td data-label="Tabla">{{ aud.tabla_afectada }}</td>
+                <td data-label="Acción">{{ aud.accion }}</td>
+                <td data-label="Descripción">{{ aud.descripcion }}</td>
+                <td data-label="Dispositivo">{{ aud.dispositivo }}</td>
+                <td data-label="IP">{{ aud.ip_origen }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
+
