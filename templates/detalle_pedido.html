@@ -1,101 +1,88 @@
-{% extends "base.html" %}
+{% extends "_automata.html" %}
 
-{% block title %}
-Detalle de Pedidos
-{% endblock %}
+{% block title %}Detalle de Pedidos{% endblock %}
 
-{% block content %}
+{% block contenido_dinamico %}
+<h2>Agregar detalle</h2>
+<form action="/guardar_detalles_pedido" method="POST">
+    <!-- SELECT de usuario -->
+    <label for="usuario">Seleccione usuario:</label>
+    <select id="usuario" name="id_usuario" required>
+        <option value="" disabled {% if not request.args.get('id_usuario') %}selected{% endif %}>-- Seleccione usuario --</option>
+        {% for usuario in usuarios %}
+            <option value="{{ usuario.id }}" 
+                {% if request.args.get('id_usuario') and request.args.get('id_usuario')|int == usuario.id %}selected{% endif %}>
+                {{ usuario.nombre }}
+            </option>
+        {% endfor %}
+    </select>
 
-<h2>Agregar detalle a un pedido</h2>
-<div class="layout-dos-columnas">
-    <div class="form-container">
-        <form action="/guardar_detalles_pedido" method="POST">
-            <!-- SELECT de usuario -->
-            <label for="usuario">Seleccione usuario:</label>
-            <select id="usuario" name="id_usuario" required>
-                <option value="" disabled {% if not request.args.get('id_usuario') %}selected{% endif %}>-- Seleccione usuario --</option>
-                {% for usuario in usuarios %}
-                    <option value="{{ usuario.id }}" 
-                        {% if request.args.get('id_usuario') and request.args.get('id_usuario')|int == usuario.id %}selected{% endif %}>
-                        {{ usuario.nombre }}
-                    </option>
-                {% endfor %}
-            </select>
+    <!-- SELECT de pedidos de usuario -->
+    <label for="id_pedido">Seleccione pedido:</label>
+    <select name="id_pedido" id="id_pedido" required>
+        <option value="" disabled {% if not request.args.get('id_pedido') %}selected{% endif %}>-- Seleccione pedido --</option>
+        {% for pedido in pedidos %}
+            {% if pedido.id_usuario == (request.args.get('id_usuario')|int) %}
+                <option value="{{ pedido.id }}"
+                    {% if request.args.get('id_pedido') and request.args.get('id_pedido')|int == pedido.id %}selected{% endif %}>
+                    Pedido #{{ pedido.id }} ({{ pedido.estado }})
+                </option>
+            {% endif %}
+        {% endfor %}
+    </select>
 
-            <!-- SELECT de pedidos de usuario -->
-            <label for="id_pedido">Seleccione pedido:</label>
-            <select name="id_pedido" id="id_pedido" required>
-                <option value="" disabled {% if not request.args.get('id_pedido') %}selected{% endif %}>-- Seleccione pedido --</option>
-                {% for pedido in pedidos %}
-                    {% if pedido.id_usuario == (request.args.get('id_usuario')|int) %}
-                        <option value="{{ pedido.id }}"
-                            {% if request.args.get('id_pedido') and request.args.get('id_pedido')|int == pedido.id %}selected{% endif %}>
-                            Pedido #{{ pedido.id }} ({{ pedido.estado }})
-                        </option>
-                    {% endif %}
-                {% endfor %}
-            </select>
+    <br><br>
 
-            <br><br>
+    <table class="tabla-detalle-pedido">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Cantidad</th>
+                <th>Eliminar</th>
+            </tr>
+        </thead>
+        <tbody id="menu-container">
+            <!-- Aquí se agregan dinámicamente las filas -->
+        </tbody>
+    </table>
 
-            <table class="tabla-detalle-pedido">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Cantidad</th>
-                        <th>Eliminar</th>
-                    </tr>
-                </thead>
-                <tbody id="menu-container">
-                    <!-- Aquí se agregan dinámicamente las filas -->
-                </tbody>
-            </table>
+    <button type="button" onclick="mostrarCatalogo()">+ Agregar ítems</button>
 
-            <button type="button" onclick="mostrarCatalogo()">+ Agregar ítems</button>
-
-            <div class="menu-catalogo" id="menu-catalogo" style="display: none;">
-                {% for item in menu %}
-                <div class="menu-card" onclick="agregarItem('{{ item.id }}', '{{ item.nombre }}')">
-                    <div class="menu-id">{{ item.id }}</div>
-                    <img src="{{ item.imagen_url or url_for('static', filename='img/default_plato.jpg') }}"
-                        alt="{{ item.nombre }}">
-                    <div class="menu-info">
-                        <h3>{{ item.nombre }}</h3>
-                        <p>{{ item.descripcion }}</p>
-                        <p class="precio">S/ {{ '%.2f'|format(item.precio) }}</p>
-                    </div>
-                </div>
-                {% endfor %}
+    <div class="menu-catalogo" id="menu-catalogo" style="display: none;">
+        {% for item in menu %}
+        <div class="menu-card" onclick="agregarItem('{{ item.id }}', '{{ item.nombre }}')">
+            <div class="menu-id">{{ item.id }}</div>
+            <img src="{{ item.imagen_url or url_for('static', filename='img/default_plato.jpg') }}"
+                alt="{{ item.nombre }}">
+            <div class="menu-info">
+                <h3>{{ item.nombre }}</h3>
+                <p>{{ item.descripcion }}</p>
+                <p class="precio">S/ {{ '%.2f'|format(item.precio) }}</p>
             </div>
+        </div>
+        {% endfor %}
+    </div>
 
-            <br><br>
+    <br><br>
 
-            <button type="submit">Guardar Todos los Detalles</button>
-        </form>
+    <button type="submit">Enviar pedido</button>
+</form>
 
-        <div class="menu-catalogo" id="menu-catalogo2" style="display: none;">
-            {% for item in menu %}
-            <div class="menu-card">
-                <div class="menu-id">{{ item.id }}</div>
-                <img src="{{ item.imagen_url or url_for('static', filename='img/default_plato.jpg') }}" alt="{{ item.nombre }}">
-                <div class="menu-info">
-                    <h3>{{ item.nombre }}</h3>
-                    <p>{{ item.descripcion }}</p>
-                    <p class="precio">S/ {{ '%.2f'|format(item.precio) }}</p>
-                </div>
-            </div>
-            {% endfor %}
+<div class="menu-catalogo" id="menu-catalogo2" style="display: none;">
+    {% for item in menu %}
+    <div class="menu-card">
+        <div class="menu-id">{{ item.id }}</div>
+        <img src="{{ item.imagen_url or url_for('static', filename='img/default_plato.jpg') }}" alt="{{ item.nombre }}">
+        <div class="menu-info">
+            <h3>{{ item.nombre }}</h3>
+            <p>{{ item.descripcion }}</p>
+            <p class="precio">S/ {{ '%.2f'|format(item.precio) }}</p>
         </div>
     </div>
-
-    <div class="automata-container">
-    {% include "_automata.html" %}
-    </div>
+    {% endfor %}
 </div>
 
 <script src="{{ url_for('static', filename='js/funciones_detalle_pedido.js') }}"></script>
-<script>
-window.menuCompleto = {{ menu | tojson | safe }};
-</script>
+<script>window.menuCompleto = {{ menu | tojson | safe }};</script>
 {% endblock %}

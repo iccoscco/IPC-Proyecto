@@ -1,5 +1,5 @@
 import { hablar, escuchar } from './voz.js';
-import { esNombreValido, extraerNombre } from './validacion.js';
+import { esNombreValido, extraerNombre,limpiarTexto,limpiarTexto2 } from './validacion.js';
 import { mostrarDebug, mostrarEnChat } from './utilidades.js';
 import { registrarUsuario, registrarUPedido, registrarUDetallePedido, idPedido } from './registrar.js';
 
@@ -22,16 +22,6 @@ const mapaNumeros = {
     "doce": 12
 };
 
-function limpiarTexto(texto) {
-    return texto
-        .toLowerCase()
-        .replace(/\s+/g, '')        // Quitar espacios
-        .replace(/\.$/, '')         // Quitar punto final
-        .replace(/arroba/g, '@')    // Convertir 'arroba' en '@'
-        .replace(/punto/g, '.')     // Convertir 'punto' en '.'
-        .replace(/coma/g, '.')      // Por si dice 'coma' en lugar de 'punto'
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, ''); // Quitar tildes
-}
 
   
 function convertirTextoANumero(texto) {
@@ -45,7 +35,7 @@ export function procesarRespuesta(texto, pasoActual) {
     mostrarDebug("Texto reconocido: " + texto);
 
     if (pasoActual === 1) {
-        const nombreExtraido = extraerNombre(limpiarTexto(texto));
+        const nombreExtraido = extraerNombre(limpiarTexto2(texto));
         mostrarDebug("Nombre extraído: " + nombreExtraido);
 
         if (!esNombreValido(nombreExtraido)) {

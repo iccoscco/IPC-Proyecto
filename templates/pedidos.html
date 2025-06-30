@@ -1,76 +1,29 @@
-{% extends "base.html" %}
+{% extends "_automata.html" %}
 
 {% block title %}Registrar Pedido{% endblock %}
 
-{% block content %}
-<div class="layout-dos-columnas">
-    <div class="form-container">
-        <h2>Pedidos</h2>
-        <div class="table-responsive">
-            <table class="pedidos-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>ID Usuario</th>
-                        <th>Estado</th>
-                        <th>Origen</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for ped in pedidos %}
-                    <tr>
-                        <td data-label="ID">{{ ped.id }}</td>
-                        <td data-label="ID Usuario">{{ ped.id_usuario }}</td>
-                        <td data-label="Estado">{{ ped.estado }}</td>
-                        <td data-label="Origen">{{ ped.origen }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>            
-        </div>
+{% block contenido_dinamico %}
+<h2>Registrar Pedido</h2>
+<form method="POST" action="/guardar_pedido">
+    <label for="id_usuario">Usuario:</label>
+    <select name="id_usuario" id="id_usuario" onchange="filtrarPedidos()" required>
+        {% for usuario in usuarios %}
+        <option value="{{ usuario.id }}" {% if usuario_filtrado|string == usuario.id|string %}selected{% endif %}>
+                {{ usuario.nombre }}
+            </option>
+        {% endfor %}
+    </select>
 
-        <h2>Registrar Pedido</h2>
-        <form method="POST" action="/guardar_pedido">
-            <label for="id_usuario">Usuario:</label>
-            <select name="id_usuario" id="id_usuario" onchange="filtrarPedidos()" required>
-                {% for usuario in usuarios %}
-                <option value="{{ usuario.id }}" {% if usuario_filtrado|string == usuario.id|string %}selected{% endif %}>
-                        {{ usuario.nombre }}
-                    </option>
-                {% endfor %}
-            </select>
+    <label for="estado_mostrado">Estado:</label>
+    <input type="text" id="estado_mostrado" value="pendiente" disabled>
+    <input type="hidden" name="estado" id="estado" value="pendiente">
 
-            <label for="estado_mostrado">Estado:</label>
-            <input type="text" id="estado_mostrado" value="pendiente" disabled>
-            <input type="hidden" name="estado" id="estado" value="pendiente">
+    <label for="origen_mostrado">Origen:</label>
+    <input type="text" id="origen_mostrado" disabled>
+    <input type="hidden" name="origen" id="origen">
 
-            <label for="origen_mostrado">Origen:</label>
-            <input type="text" id="origen_mostrado" disabled>
-            <input type="hidden" name="origen" id="origen">
-
-            <button type="submit">Guardar</button>
-        </form>
-    </div>
-
-    <div class="automata-container">
-    {% include "_automata.html" %}
-    </div>
-</div>
-
-<h2>Menú Disponible</h2>
-<div class="menu-catalogo">
-    {% for item in menu %}
-    <div class="menu-card">
-        <div class="menu-id">{{ item.id }}</div>
-        <img src="{{ item.imagen_url or url_for('static', filename='img/default_plato.jpg') }}" alt="{{ item.nombre }}">
-        <div class="menu-info">
-            <h3>{{ item.nombre }}</h3>
-            <p>{{ item.descripcion }}</p>
-            <p class="precio">S/ {{ '%.2f'|format(item.precio) }}</p>
-        </div>
-    </div>
-    {% endfor %}
-</div>
+    <button type="submit">Guardar</button>
+</form>
 
 <script type="module" src="{{ url_for('static', filename='js/automata/main.js') }}"></script>
 <script src="{{ url_for('static', filename='js/funciones_pedidos.js') }}"></script>
