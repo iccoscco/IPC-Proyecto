@@ -95,11 +95,16 @@ def guardar_usuario():
             nuevo_id = cursor.lastrowid
         connection.commit()
 
-     # Guardar usuario en sesion (por navegador)
+    # Guardar en sesión
     session['usuario_id'] = nuevo_id
     session['usuario_nombre'] = nombre
 
-    return jsonify({'success': True, 'id_usuario': nuevo_id, 'nombre': nombre})
+    # Si es un fetch/ajax (cabecera específica), retorna JSON
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'success': True, 'id_usuario': nuevo_id, 'nombre': nombre})
+    else:
+        # Si es formulario tradicional (táctil), redirige
+        return redirect(f'/pedidos?id_usuario={nuevo_id}&origen=tactil')
 
 
 @app.route('/editar_usuarios')
@@ -212,6 +217,354 @@ def guardar_permisos():
             """, (id_rol, tabla, puede_ver, puede_agregar, puede_modificar, puede_eliminar))
         connection.commit()
     return redirect('/permisos')
+
+# ==== PEDIDOS ====
+@app.route('/pedidos')
+def pedidos():
+    # Obtener el ID del usuario desde la URL o desde la sesión
+    id_usuario = request.args.get('id_usuario')
+
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id, nombre FROM usuarios")
+            usuarios = cursor.fetchall()
+
+            if id_usuario:
+                cursor.execute("SELECT * FROM pedidos WHERE id_usuario = %s", (id_usuario,))
+            else:
+                cursor.execute("SELECT * FROM pedidos")
+            pedidos = cursor.fetchall()
+
+            cursor.execute("SELECT * FROM menu WHERE disponible = 1")
+            menu = cursor.fetchall()
+
+    # Obtener avatar SVG desde la sesion si esta disponible
+    avatar_svg = session.get('avatar_svg')
+
+    return render_template(
+        'pedidos.html',
+        usuarios=usuarios,
+        pedidos=pedidos,
+        usuario_filtrado=id_usuario,
+        menu=menu,
+        usuario_id=id_usuario,      # para el automata
+        avatar_svg=avatar_svg       # para mostrar el avatar
+    )
+
+
+@app.route('/guardar_pedido', methods=['POST'])
+def guardar_pedido():
+    id_usuario = request.form['id_usuario']
+    estado = request.form['estado']
+    origen = request.form['origen']
+    
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            # Validar ID de usuario
+            cursor.execute("SELECT id FROM usuarios WHERE id = %s", (id_usuario,))
+            if not cursor.fetchone():
+                return jsonify({'success': False, 'error': 'ID de usuario no válido'})
+
+            sql = "INSERT INTO pedidos (id_usuario, estado, origen) VALUES (%s, %s, %s)"
+            cursor.execute(sql, (id_usuario, estado, origen))
+            nuevo_pedido_id = cursor.lastrowid  # Obtener el ID del nuevo pedido
+        connection.commit()
+
+    # Si viene desde fetch/ajax
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'success': True, 'id_pedido': nuevo_pedido_id, 'id_usuario': id_usuario})
+    else:
+        # Redirige al formulario de detalle de pedido con los valores en la URL
+        return redirect(f'/detalle_pedido?id_usuario={id_usuario}&id_pedido={nuevo_pedido_id}')
+
+@app.route('/editar_pedidos')
+def editar_pedidos():
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            # Traer pedidos con nombre del usuario
+            cursor.execute("""
+                SELECT p.*, u.nombre AS nombre_usuario 
+                FROM pedidos p 
+                JOIN usuarios u ON p.id_usuario = u.id
+            """)
+            pedidos = cursor.fetchall()
+
+            # Traer usuarios
+            cursor.execute("SELECT id, nombre FROM usuarios")
+            usuarios = cursor.fetchall()
+
+            # Traer menú
+            cursor.execute("SELECT * FROM menu")
+            menu = cursor.fetchall()
+
+            # Traer detalles de pedido
+            cursor.execute("SELECT * FROM detalle_pedido")
+            detalles = cursor.fetchall()
+
+    # Agrupar detalle por id_pedido
+    detalles_por_pedido = {}
+    for detalle in detalles:
+        detalles_por_pedido.setdefault(detalle['id_pedido'], []).append(detalle)
+
+    # Verificar si un pedido tiene detalles relacionados
+    pedidos_relacionados = {}
+    for pedido in pedidos:
+        id_pedido = pedido['id']
+        pedidos_relacionados[id_pedido] = id_pedido in detalles_por_pedido and len(detalles_por_pedido[id_pedido]) > 0
+
+    return render_template(
+        'editar_pedidos.html',
+        pedidos=pedidos,
+        usuarios=usuarios,
+        menu=menu,
+        detalles_por_pedido=detalles_por_pedido,
+        pedidos_relacionados=pedidos_relacionados  
+    )
+
+
+@app.route('/actualizar_pedido/<int:id>', methods=['POST'])
+def actualizar_pedido(id):
+    id_usuario = request.form['id_usuario']
+    estado = request.form['estado']
+    origen = request.form['origen']
+
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            sql = """
+                UPDATE pedidos SET id_usuario=%s, estado=%s, origen=%s WHERE id=%s
+            """
+            cursor.execute(sql, (id_usuario, estado, origen, id))
+        connection.commit()
+    return redirect('/editar_pedidos')
+
+
+@app.route('/eliminar_pedido/<int:id>')
+def eliminar_pedido(id):
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM pedidos WHERE id = %s", (id,))
+        connection.commit()
+    return redirect('/editar_pedidos')
+
+@app.route('/cancelar_pedido/<int:id>', methods=['POST'])
+def cancelar_pedido(id):
+    connection = get_db_connection()
+    with connection.cursor() as cursor:
+        cursor.execute("UPDATE pedidos SET estado = 'cancelado' WHERE id = %s", (id,))
+    connection.commit()
+    return '', 204
+
+# ==== DETALLE DE PEDIDO ====
+@app.route('/detalle_pedido')
+def detalle_pedido():
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            # Obtener todos los usuarios
+            cursor.execute("SELECT id, nombre FROM usuarios")
+            usuarios = cursor.fetchall()
+
+            # Obtener todos los pedidos con estado "pendiente"
+            cursor.execute("SELECT id, id_usuario FROM pedidos WHERE estado = 'pendiente'")
+            pedidos = cursor.fetchall()
+
+            # Obtener menu disponible
+            cursor.execute("SELECT id, nombre, descripcion, precio, imagen_url FROM menu WHERE disponible = 1")
+            menu = cursor.fetchall()
+
+    return render_template('detalle_pedido.html', usuarios=usuarios, menu=menu, pedidos=pedidos)
+
+
+
+@app.route('/guardar_detalles_pedido', methods=['POST'])
+def guardar_detalles_pedido():
+    id_pedido = request.form['id_pedido']
+    ids_menu = request.form.getlist('id_menu[]')   # lista de menus
+    cantidades = request.form.getlist('cantidad[]') # lista de cantidades
+
+    print("🗂️ Recibiendo detalle pedido:")
+    print("id_pedido:", id_pedido)
+    print("ids_menu:", ids_menu)
+    print("cantidades:", cantidades)
+
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            for id_menu, cantidad in zip(ids_menu, cantidades):
+        
+                cursor.execute("""
+                    INSERT INTO detalle_pedido (id_pedido, id_menu, cantidad)
+                    VALUES (%s, %s, %s)
+                """, (id_pedido, id_menu, cantidad))
+        connection.commit()
+
+    return redirect(request.referrer)
+
+@app.route('/actualizar_detalle_pedido/<int:id>', methods=['POST'])
+def actualizar_detalle_pedido(id):
+    id_menu = request.form['id_menu']
+    cantidad = request.form['cantidad']
+
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            sql = """
+                UPDATE detalle_pedido 
+                SET id_menu=%s, cantidad=%s 
+                WHERE id=%s
+            """
+            cursor.execute(sql, (id_menu, cantidad, id))
+        connection.commit()
+    return redirect('/editar_pedidos')
+
+@app.route('/eliminar_detalle_pedido/<int:id>')
+def eliminar_detalle_pedido(id):
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM detalle_pedido WHERE id = %s", (id,))
+        connection.commit()
+    return redirect(request.referrer or '/editar_pedidos')
+
+
+@app.route('/pedidos_usuario/<int:id_usuario>')
+def pedidos_usuario_json(id_usuario):
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT id FROM pedidos 
+                WHERE id_usuario = %s AND estado = 'pendiente'
+            """, (id_usuario,))
+            pedidos = cursor.fetchall()
+
+    return jsonify({ 'pedidos': pedidos })
+
+@app.route('/vista_pedido')
+def vista_pedido():
+    id_usuario = request.args.get('id_usuario')
+
+    if not id_usuario:
+        return "ID de usuario no proporcionado", 400
+
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            # Obtener nombre del usuario
+            cursor.execute("SELECT nombre FROM usuarios WHERE id = %s", (id_usuario,))
+            usuario = cursor.fetchone()
+
+            # Obtener pedidos del usuario
+            cursor.execute("""
+                SELECT p.id, p.estado, p.fecha
+                FROM pedidos p
+                WHERE p.id_usuario = %s
+            """, (id_usuario,))
+            pedidos = cursor.fetchall()
+
+            # Obtener detalles de cada pedido
+            cursor.execute("""
+                SELECT dp.id_pedido, dp.id_menu, m.nombre AS nombre_menu, m.descripcion, m.precio, dp.cantidad
+                FROM detalle_pedido dp
+                JOIN menu m ON dp.id_menu = m.id
+                JOIN pedidos p ON dp.id_pedido = p.id
+                WHERE p.id_usuario = %s
+            """, (id_usuario,))
+            detalles = cursor.fetchall()
+
+            # Obtener menu
+            cursor.execute("SELECT * FROM menu WHERE disponible = 1")
+            menu = cursor.fetchall()
+
+    # Calcular total por pedido en backend
+    totales_por_pedido = {}
+    for pedido in pedidos:
+        total = 0
+        for item in detalles:
+            if item['id_pedido'] == pedido['id']:
+                total += item['precio'] * item['cantidad']
+        totales_por_pedido[pedido['id']] = total
+
+    return render_template('vista_pedido.html', usuario=usuario, pedidos=pedidos, detalles=detalles, totales_por_pedido=totales_por_pedido, menu=menu)
+
+@app.route('/vista_pedido/eliminar_item/<int:id_pedido>/<int:id_menu>', methods=['POST'])
+def eliminar_item_vista_pedido(id_pedido, id_menu):
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM detalle_pedido WHERE id_pedido = %s AND id_menu = %s",
+                (id_pedido, id_menu)
+            )
+        connection.commit()
+    return redirect(request.referrer or '/vista_pedido')
+
+
+@app.route('/pedidos_por_usuario')
+def pedidos_por_usuario():
+    usuario_id = request.args.get('usuario_id')
+
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id FROM pedidos WHERE estado = 'pendiente' AND id_usuario = %s", (usuario_id,))
+            pedidos = cursor.fetchall()
+    
+    return jsonify(pedidos)
+
+@app.route('/actualizar_estado', methods=['POST'])
+def actualizar_estado():
+    data = request.get_json()
+    id_pedido = data['id_pedido']
+    nuevo_estado = data['nuevo_estado']
+
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute("UPDATE pedidos SET estado = %s WHERE id = %s", (nuevo_estado, id_pedido))
+        connection.commit()
+    return jsonify({'success': True})
+
+@app.route('/vista_cocinero')
+def vista_cocinero():
+    connection = get_db_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            # Obtener todos los pedidos
+            cursor.execute("SELECT * FROM pedidos")
+            pedidos = cursor.fetchall()
+
+            # Obtener detalles de cada pedido (menu + cantidad)
+            cursor.execute("""
+                SELECT dp.id_pedido, dp.id_menu, m.nombre AS nombre_menu, dp.cantidad
+                FROM detalle_pedido dp
+                JOIN menu m ON dp.id_menu = m.id
+            """)
+            detalles = cursor.fetchall()
+
+            # Obtener ingredientes por menú
+            cursor.execute("""
+                SELECT 
+                    mi.id_menu, 
+                    i.nombre AS nombre_ingrediente, 
+                    mi.cantidad_necesaria AS cantidad, 
+                    i.unidad_medida
+                FROM menu_ingredientes mi
+                JOIN ingredientes i ON mi.id_ingrediente = i.id
+            """)
+            ingredientes_por_menu = cursor.fetchall()
+
+    return render_template(
+        'vista_cocinero.html',
+        pedidos=pedidos,
+        detalles=detalles,
+        ingredientes_por_menu=ingredientes_por_menu
+    )
 
 # ==== MENÚ ====
 @app.route('/menu')
@@ -350,321 +703,6 @@ def eliminar_ingrediente(id):
             cursor.execute("DELETE FROM ingredientes WHERE id = %s", (id,))
         connection.commit()
     return redirect('/editar_ingredientes')
-
-# ==== PEDIDOS ====
-@app.route('/pedidos')
-def pedidos():
-    # Obtener el ID del usuario desde la URL o desde la sesión
-    id_usuario = request.args.get('id_usuario') or session.get('usuario_id')
-
-    connection = get_db_connection()
-    with connection:
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT id, nombre FROM usuarios")
-            usuarios = cursor.fetchall()
-
-            if id_usuario:
-                cursor.execute("SELECT * FROM pedidos WHERE id_usuario = %s", (id_usuario,))
-            else:
-                cursor.execute("SELECT * FROM pedidos")
-            pedidos = cursor.fetchall()
-
-            cursor.execute("SELECT * FROM menu WHERE disponible = 1")
-            menu = cursor.fetchall()
-
-    # Obtener avatar SVG desde la sesion si esta disponible
-    avatar_svg = session.get('avatar_svg')
-
-    return render_template(
-        'pedidos.html',
-        usuarios=usuarios,
-        pedidos=pedidos,
-        usuario_filtrado=id_usuario,
-        menu=menu,
-        usuario_id=id_usuario,      # para el automata
-        avatar_svg=avatar_svg       # para mostrar el avatar
-    )
-
-
-@app.route('/guardar_pedido', methods=['POST'])
-def guardar_pedido():
-    id_usuario = request.form['id_usuario']
-    estado = request.form['estado']
-    origen = request.form['origen']
-    
-    connection = get_db_connection()
-    with connection:
-        with connection.cursor() as cursor:
-            # Validar ID de usuario
-            cursor.execute("SELECT id FROM usuarios WHERE id = %s", (id_usuario,))
-            if not cursor.fetchone():
-                return jsonify({'success': False, 'error': 'ID de usuario no válido'})
-
-            sql = "INSERT INTO pedidos (id_usuario, estado, origen) VALUES (%s, %s, %s)"
-            cursor.execute(sql, (id_usuario, estado, origen))
-            nuevo_pedido_id = cursor.lastrowid  # Obtener el ID del nuevo pedido
-        connection.commit()
-
-    return jsonify({'success': True, 'id_pedido': nuevo_pedido_id}) 
-
-@app.route('/editar_pedidos')
-def editar_pedidos():
-    connection = get_db_connection()
-    with connection:
-        with connection.cursor() as cursor:
-            # Traer pedidos con nombre del usuario
-            cursor.execute("""
-                SELECT p.*, u.nombre AS nombre_usuario 
-                FROM pedidos p 
-                JOIN usuarios u ON p.id_usuario = u.id
-            """)
-            pedidos = cursor.fetchall()
-
-            # Traer usuarios
-            cursor.execute("SELECT id, nombre FROM usuarios")
-            usuarios = cursor.fetchall()
-
-            # Traer menú
-            cursor.execute("SELECT * FROM menu")
-            menu = cursor.fetchall()
-
-            # Traer detalles de pedido
-            cursor.execute("SELECT * FROM detalle_pedido")
-            detalles = cursor.fetchall()
-
-    # Agrupar detalle por id_pedido
-    detalles_por_pedido = {}
-    for detalle in detalles:
-        detalles_por_pedido.setdefault(detalle['id_pedido'], []).append(detalle)
-
-    # Verificar si un pedido tiene detalles relacionados
-    pedidos_relacionados = {}
-    for pedido in pedidos:
-        id_pedido = pedido['id']
-        pedidos_relacionados[id_pedido] = id_pedido in detalles_por_pedido and len(detalles_por_pedido[id_pedido]) > 0
-
-    return render_template(
-        'editar_pedidos.html',
-        pedidos=pedidos,
-        usuarios=usuarios,
-        menu=menu,
-        detalles_por_pedido=detalles_por_pedido,
-        pedidos_relacionados=pedidos_relacionados  
-    )
-
-
-@app.route('/actualizar_pedido/<int:id>', methods=['POST'])
-def actualizar_pedido(id):
-    id_usuario = request.form['id_usuario']
-    estado = request.form['estado']
-    origen = request.form['origen']
-
-    connection = get_db_connection()
-    with connection:
-        with connection.cursor() as cursor:
-            sql = """
-                UPDATE pedidos SET id_usuario=%s, estado=%s, origen=%s WHERE id=%s
-            """
-            cursor.execute(sql, (id_usuario, estado, origen, id))
-        connection.commit()
-    return redirect('/editar_pedidos')
-
-
-@app.route('/eliminar_pedido/<int:id>')
-def eliminar_pedido(id):
-    connection = get_db_connection()
-    with connection:
-        with connection.cursor() as cursor:
-            cursor.execute("DELETE FROM pedidos WHERE id = %s", (id,))
-        connection.commit()
-    return redirect('/editar_pedidos')
-
-# ==== DETALLE DE PEDIDO ====
-@app.route('/detalle_pedido')
-def detalle_pedido():
-    connection = get_db_connection()
-    with connection:
-        with connection.cursor() as cursor:
-            # Obtener todos los usuarios
-            cursor.execute("SELECT id, nombre FROM usuarios")
-            usuarios = cursor.fetchall()
-
-            # Obtener todos los pedidos con estado "pendiente"
-            cursor.execute("SELECT id, id_usuario FROM pedidos WHERE estado = 'pendiente'")
-            pedidos = cursor.fetchall()
-
-            # Obtener menu disponible
-            cursor.execute("SELECT id, nombre FROM menu WHERE disponible = 1")
-            menu = cursor.fetchall()
-
-    return render_template('detalle_pedido.html', usuarios=usuarios, menu=menu, pedidos=pedidos)
-
-
-
-@app.route('/guardar_detalles_pedido', methods=['POST'])
-def guardar_detalles_pedido():
-    id_pedido = request.form['id_pedido']
-    ids_menu = request.form.getlist('id_menu[]')   # lista de menus
-    cantidades = request.form.getlist('cantidad[]') # lista de cantidades
-
-    connection = get_db_connection()
-    with connection:
-        with connection.cursor() as cursor:
-            for id_menu, cantidad in zip(ids_menu, cantidades):
-        
-                cursor.execute("""
-                    INSERT INTO detalle_pedido (id_pedido, id_menu, cantidad)
-                    VALUES (%s, %s, %s)
-                """, (id_pedido, id_menu, cantidad))
-        connection.commit()
-
-    return redirect('/detalle_pedido')
-
-@app.route('/actualizar_detalle_pedido/<int:id>', methods=['POST'])
-def actualizar_detalle_pedido(id):
-    id_menu = request.form['id_menu']
-    cantidad = request.form['cantidad']
-
-    connection = get_db_connection()
-    with connection:
-        with connection.cursor() as cursor:
-            sql = """
-                UPDATE detalle_pedido 
-                SET id_menu=%s, cantidad=%s 
-                WHERE id=%s
-            """
-            cursor.execute(sql, (id_menu, cantidad, id))
-        connection.commit()
-    return redirect('/editar_pedidos')
-
-@app.route('/eliminar_detalle_pedido/<int:id>')
-def eliminar_detalle_pedido(id):
-    connection = get_db_connection()
-    with connection:
-        with connection.cursor() as cursor:
-            cursor.execute("DELETE FROM detalle_pedido WHERE id = %s", (id,))
-        connection.commit()
-    return redirect('/editar_pedidos')
-
-
-@app.route('/pedidos_usuario/<int:id_usuario>')
-def pedidos_usuario_json(id_usuario):
-    connection = get_db_connection()
-    with connection:
-        with connection.cursor() as cursor:
-            cursor.execute("""
-                SELECT id FROM pedidos 
-                WHERE id_usuario = %s AND estado = 'pendiente'
-            """, (id_usuario,))
-            pedidos = cursor.fetchall()
-
-    return jsonify({ 'pedidos': pedidos })
-
-@app.route('/vista_pedido')
-def vista_pedido():
-    id_usuario = request.args.get('id_usuario')
-
-    if not id_usuario:
-        return "ID de usuario no proporcionado", 400
-
-    connection = get_db_connection()
-    with connection:
-        with connection.cursor() as cursor:
-            # Obtener nombre del usuario
-            cursor.execute("SELECT nombre FROM usuarios WHERE id = %s", (id_usuario,))
-            usuario = cursor.fetchone()
-
-            # Obtener pedidos del usuario
-            cursor.execute("""
-                SELECT p.id, p.estado, p.fecha
-                FROM pedidos p
-                WHERE p.id_usuario = %s
-            """, (id_usuario,))
-            pedidos = cursor.fetchall()
-
-            # Obtener detalles de cada pedido
-            cursor.execute("""
-                SELECT dp.id_pedido, m.nombre AS nombre_menu, m.descripcion, m.precio, dp.cantidad
-                FROM detalle_pedido dp
-                JOIN menu m ON dp.id_menu = m.id
-                JOIN pedidos p ON dp.id_pedido = p.id
-                WHERE p.id_usuario = %s
-            """, (id_usuario,))
-            detalles = cursor.fetchall()
-
-    # Calcular total por pedido en backend
-    totales_por_pedido = {}
-    for pedido in pedidos:
-        total = 0
-        for item in detalles:
-            if item['id_pedido'] == pedido['id']:
-                total += item['precio'] * item['cantidad']
-        totales_por_pedido[pedido['id']] = total
-
-    return render_template('vista_pedido.html', usuario=usuario, pedidos=pedidos, detalles=detalles, totales_por_pedido=totales_por_pedido)
-
-
-@app.route('/pedidos_por_usuario')
-def pedidos_por_usuario():
-    usuario_id = request.args.get('usuario_id')
-
-    connection = get_db_connection()
-    with connection:
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT id FROM pedidos WHERE estado = 'pendiente' AND id_usuario = %s", (usuario_id,))
-            pedidos = cursor.fetchall()
-    
-    return jsonify(pedidos)
-
-@app.route('/actualizar_estado', methods=['POST'])
-def actualizar_estado():
-    data = request.get_json()
-    id_pedido = data['id_pedido']
-    nuevo_estado = data['nuevo_estado']
-
-    connection = get_db_connection()
-    with connection:
-        with connection.cursor() as cursor:
-            cursor.execute("UPDATE pedidos SET estado = %s WHERE id = %s", (nuevo_estado, id_pedido))
-        connection.commit()
-    return jsonify({'success': True})
-
-@app.route('/vista_cocinero')
-def vista_cocinero():
-    connection = get_db_connection()
-    with connection:
-        with connection.cursor() as cursor:
-            # Obtener todos los pedidos
-            cursor.execute("SELECT * FROM pedidos")
-            pedidos = cursor.fetchall()
-
-            # Obtener detalles de cada pedido (menu + cantidad)
-            cursor.execute("""
-                SELECT dp.id_pedido, dp.id_menu, m.nombre AS nombre_menu, dp.cantidad
-                FROM detalle_pedido dp
-                JOIN menu m ON dp.id_menu = m.id
-            """)
-            detalles = cursor.fetchall()
-
-            # Obtener ingredientes por menú
-            cursor.execute("""
-                SELECT 
-                    mi.id_menu, 
-                    i.nombre AS nombre_ingrediente, 
-                    mi.cantidad_necesaria AS cantidad, 
-                    i.unidad_medida
-                FROM menu_ingredientes mi
-                JOIN ingredientes i ON mi.id_ingrediente = i.id
-            """)
-            ingredientes_por_menu = cursor.fetchall()
-
-    return render_template(
-        'vista_cocinero.html',
-        pedidos=pedidos,
-        detalles=detalles,
-        ingredientes_por_menu=ingredientes_por_menu
-    )
-
 
 # ==== REGISTRO DE VOZ ====
 @app.route('/registro_voz')

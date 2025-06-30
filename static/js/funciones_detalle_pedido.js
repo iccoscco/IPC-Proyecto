@@ -1,3 +1,13 @@
+// Mostrar el menú-catalogo2 si origen=voz
+const params = new URLSearchParams(window.location.search);
+const origen = params.get('origen');
+
+if (origen === 'voz') {
+    document.getElementById('menu-catalogo2').style.display = 'grid';
+} else {
+    document.getElementById('menu-catalogo2').style.display = 'none';
+}
+
 function agregarFila() {
     const contenedor = document.getElementById('menu-container');
     const nuevo = contenedor.children[0].cloneNode(true);
@@ -42,3 +52,91 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+function mostrarCatalogo() {
+    document.getElementById('menu-catalogo').style.display = 'grid';
+}
+
+function ocultarCatalogo() {
+    document.getElementById('menu-catalogo').style.display = 'none';
+}
+
+function agregarItem(idMenu, nombreMenu) {
+    const container = document.getElementById('menu-container');
+    const existente = container.querySelector(`tr[data-id='${idMenu}']`);
+
+    if (existente) {
+        const cantidadInput = existente.querySelector('input[name="cantidad[]"]');
+        cantidadInput.value = parseInt(cantidadInput.value) + 1;
+    } else {
+        const fila = document.createElement('tr');
+        fila.classList.add('menu-item');
+        fila.setAttribute('data-id', idMenu);
+
+        fila.innerHTML = `
+            <td>
+                <div class="menu-id-circulo">${idMenu}</div>
+                <input type="hidden" name="id_menu[]" value="${idMenu}">
+            </td>
+            <td>${nombreMenu}</td>
+            <td>
+                <input type="number" name="cantidad[]" min="1" value="1" required>
+            </td>
+            <td>
+                <button type="button" onclick="eliminarItem(this)" title="Eliminar">
+                    🗑️
+                </button>
+            </td>
+        `;
+
+        container.appendChild(fila);
+    }
+
+    ocultarCatalogo();
+}
+
+function eliminarItem(boton) {
+    const fila = boton.closest('tr');
+    fila.remove();
+}
+
+window.agregarItemDesdeVoz = function(idMenu, nombreMenu, cantidad = 1) {
+    const container = document.getElementById('menu-container');
+    const existente = container.querySelector(`[data-id='${idMenu}']`);
+
+    if (existente) {
+        const cantidadInput = existente.querySelector('input[name="cantidad[]"]');
+        cantidadInput.value = parseInt(cantidadInput.value) + cantidad;
+    } else {
+        const fila = document.createElement('tr');
+        fila.classList.add('menu-item');
+        fila.setAttribute('data-id', idMenu);
+
+        fila.innerHTML = `
+            <td>
+                <div class="menu-id-circulo">${idMenu}</div>
+                <input type="hidden" name="id_menu[]" value="${idMenu}">
+            </td>
+            <td>${nombreMenu}</td>
+            <td>
+                <input type="number" name="cantidad[]" min="1" value="1" required>
+            </td>
+            <td>
+                <button type="button" onclick="eliminarItem(this)" title="Eliminar">
+                    🗑️
+                </button>
+            </td>
+        `;
+
+        container.appendChild(fila);
+    }
+};
+
+function resaltarItem(idMenu) {
+    const card = document.querySelector(`.menu-card[onclick*="${idMenu}"]`);
+    if (card) {
+        card.style.boxShadow = "0 0 10px 3px #00ff00";
+        setTimeout(() => {
+            card.style.boxShadow = "";
+        }, 500);
+    }
+}

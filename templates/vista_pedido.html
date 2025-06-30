@@ -9,7 +9,7 @@ Vista de Pedido
 
 {% if pedidos %}
     {% for pedido in pedidos %}
-        <div style="margin-bottom: 2rem;">
+        <div class="pedido-container" id="pedido-{{ pedido.id }}">
             <h3>Pedido #{{ pedido.id }}</h3>
             <p>
                 <strong>Estado:</strong> 
@@ -20,10 +20,30 @@ Vista de Pedido
             </p>
             {% set total_pedido = 0 %}
 
+            <!-- Botones -->
+            <div class="botones-pedido">
+                <button 
+                    onclick="mostrarMenu('{{ pedido.id }}')" 
+                    {% if pedido.estado == 'cancelado' %}disabled{% endif %}>
+                    ➕ Agregar Ítems
+                </button>
+                <button 
+                    onclick="mostrarEliminarItems('{{ pedido.id }}')" 
+                    {% if pedido.estado == 'cancelado' %}disabled{% endif %}>
+                    🗑 Eliminar Ítems
+                </button>
+                <button 
+                    onclick="cancelarPedido('{{ pedido.id }}')" 
+                    {% if pedido.estado == 'cancelado' %}disabled{% endif %}>
+                    ❌ Cancelar Pedido
+                </button>
+            </div>
+
             <div class="table-responsive">
                 <table class="pedidos-table">
                     <thead>
                         <tr>
+                            <th>Nro de item</th>
                             <th>Ítem</th>
                             <th>Descripción</th>
                             <th>Cantidad</th>
@@ -37,28 +57,89 @@ Vista de Pedido
                                 {% set subtotal = item.precio * item.cantidad %}
                                 {% set total_pedido = total_pedido + subtotal %}
                                 <tr>
-                                    <td>{{ item.nombre_menu }}</td>
-                                    <td>{{ item.descripcion }}</td>
-                                    <td>{{ item.cantidad }}</td>
-                                    <td>S/ {{ '%.2f'|format(item.precio) }}</td>
-                                    <td>S/ {{ '%.2f'|format(subtotal) }}</td>
+                                    <td data-label="Nro de item">{{ item.id_menu }}</td>
+                                    <td data-label="Ítem">{{ item.nombre_menu }}</td>
+                                    <td data-label="Descripción">{{ item.descripcion }}</td>
+                                    <td data-label="Cantidad">{{ item.cantidad }}</td>
+                                    <td data-label="Precio Unitario">S/ {{ '%.2f'|format(item.precio) }}</td>
+                                    <td data-label="Total">S/ {{ '%.2f'|format(subtotal) }}</td>
                                 </tr>
                             {% endif %}
                         {% endfor %}
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="4" style="text-align: right;"><strong>Total del pedido:</strong></td>
+                            <td colspan="5" style="text-align: right;"><strong>Total del pedido:</strong></td>
                             <td><strong>S/ {{ '%.2f'|format(totales_por_pedido[pedido.id]) }}</strong></td>
                         </tr>
                     </tfoot>                    
                 </table>
             </div>
+
+            <!-- Tabla eliminar ítems (oculta) -->
+            <div id="eliminar-items-{{ pedido.id }}" class="table-responsive" style="display:none;">
+                <h4>Eliminar Ítems del Pedido</h4>
+                <table class="pedidos-table">
+                    <thead>
+                        <tr><th>Ítem</th><th>Cantidad</th><th>Acción</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for item in detalles %}
+                            {% if item.id_pedido == pedido.id %}
+                            <tr>
+                                <td>{{ item.nombre_menu }}</td>
+                                <td>{{ item.cantidad }}</td>
+                                <td>
+                                    <button onclick="eliminarItem('{{ pedido.id }}', '{{ item.id_menu }}')">  🗑 Eliminar</button>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Menú disponible (oculto hasta que se presione agregar ítems) -->
+            <div class="menu-catalogo" id="menu-{{ pedido.id }}" style="display:none;">
+                {% for item in menu %}
+                <div class="menu-card">
+                    <div class="menu-id">{{ item.id }}</div>
+                    <img src="{{ item.imagen_url or url_for('static', filename='img/default_plato.jpg') }}"
+                        alt="{{ item.nombre }}"
+                        onclick="abrirModalAgregar('{{ pedido.id }}', '{{ item.id }}', '{{ item.nombre }}')">
+                    <div class="menu-info">
+                        <h3>{{ item.nombre }}</h3>
+                        <p>{{ item.descripcion }}</p>
+                        <p class="precio">S/ {{ '%.2f'|format(item.precio) }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
         </div>
     {% endfor %}
 {% else %}
     <p>No hay pedidos registrados para este usuario.</p>
 {% endif %}
+
+
+<div id="modalAgregar" class="modal">
+    <div class="modal-contenido">
+        <span class="cerrar" onclick="cerrarModal()">&times;</span>
+        <h3 id="modal-titulo">Agregar al Pedido</h3>
+        <p id="modal-menu-nombre"></p>
+        <form id="formAgregarDetalle" method="POST" action="/guardar_detalles_pedido">
+            <input type="hidden" name="id_pedido" id="modal-id-pedido">
+            <input type="hidden" name="id_menu[]" id="modal-id-menu">
+            
+            <label for="cantidad">Cantidad:</label>
+            <input type="number" name="cantidad[]" id="cantidad" min="1" required>
+
+            <button type="submit">Agregar</button>
+        </form>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/funciones_vista_pedido.js') }}"></script>
 {% endblock %}
 
 

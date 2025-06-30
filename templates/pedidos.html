@@ -40,19 +40,13 @@
                 {% endfor %}
             </select>
 
-            <label for="estado">Estado:</label>
-            <select name="estado" id="estado" required>
-                <option value="pendiente">Pendiente</option>
-                <option value="en cocina">En cocina</option>
-                <option value="servido">Servido</option>
-                <option value="cancelado">Cancelado</option>
-            </select>
+            <label for="estado_mostrado">Estado:</label>
+            <input type="text" id="estado_mostrado" value="pendiente" disabled>
+            <input type="hidden" name="estado" id="estado" value="pendiente">
 
-            <label for="origen">Origen:</label>
-            <select name="origen" id="origen" required>
-                <option value="voz">Voz</option>
-                <option value="tactil">Táctil</option>
-            </select>
+            <label for="origen_mostrado">Origen:</label>
+            <input type="text" id="origen_mostrado" disabled>
+            <input type="hidden" name="origen" id="origen">
 
             <button type="submit">Guardar</button>
         </form>

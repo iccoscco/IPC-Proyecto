@@ -9,18 +9,43 @@ export function iniciarAutomata() {
     const urlAvatar = '/static/avatars/avatar.svg?t=' + new Date().getTime();
     const ruta = window.location.pathname;
     const params = new URLSearchParams(window.location.search);
-    const idUsuario = params.get('id_usuario');
 
-    // Cargar avatar primero
+    const idUsuarioURL = params.get('id_usuario');
+    const idPedidoURL = params.get('id_pedido');
+    const origen = params.get('origen') || 'tactil';
+
+    // Guardar datos en memoria global y sessionStorage
+    if (idUsuarioURL) {
+        window.idUsuario = idUsuarioURL;
+        sessionStorage.setItem('id_usuario', idUsuarioURL);
+    }
+
+    if (idPedidoURL) {
+        window.idPedido = idPedidoURL;
+        sessionStorage.setItem('id_pedido', idPedidoURL);
+    }
+
+    // Cargar avatar y decidir flujo según la ruta
     cargarAvatarDesdeArchivo(urlAvatar, () => {
         if (ruta.includes('/usuarios')) {
             flujoRegistroUsuario();
-        } else if (ruta.includes('/pedidos') && idUsuario) {
-            flujoPedidoConUsuario(idUsuario);
+
+        } else if (ruta.includes('/pedidos') && idUsuarioURL) {
+            if (origen === 'voz') {
+                flujoPedidoConUsuario(idUsuarioURL);
+            }
+
         } else if (ruta.includes('/pedidos')) {
             flujoPedidoSinUsuario();
+
+        } else if (ruta.includes('/detalle_pedido') && idUsuarioURL && idPedidoURL) {
+            if (origen === 'voz') {
+                flujoDetallePedidoConUsuarioConPedido(idUsuarioURL, idPedidoURL);
+            }
+
         } else if (ruta.includes('/detalle_pedido')) {
             flujoDetallePedidoDirecto();
+
         } else {
             hablar("No sé en qué parte del sistema estás. Contacta con un administrador.");
         }
@@ -36,7 +61,7 @@ function flujoRegistroUsuario() {
 function flujoPedidoConUsuario(idUsuario) {
     // Continuar con el pedido directamente
     hablar("Procederé a registrar tu pedido.", () => {
-        registrarUPedido(idUsuario);  // irá al paso 3 automáticamente
+        registrarUPedido(idUsuario);  // ira al paso 3 automaticamente
     });
 }
 
@@ -45,6 +70,19 @@ function flujoPedidoSinUsuario() {
         escuchar(1);
     });
 }
+
+function flujoDetallePedidoConUsuarioConPedido(idUsuario, idPedido) {
+    // Guardar en memoria global y sessionStorage
+    window.idUsuario = idUsuario;
+    window.idPedido = idPedido;
+    sessionStorage.setItem('id_usuario', idUsuario);
+    sessionStorage.setItem('id_pedido', idPedido);
+
+    hablar("Ahora te muestro los platos disponibles. Indícame el número del plato que deseas.", () => {
+        escuchar(3); // Paso 3: selección de ítems
+    });
+}
+
 
 function flujoDetallePedidoDirecto() {
     const selectUsuario = document.getElementById("usuario");

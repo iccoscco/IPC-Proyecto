@@ -5,6 +5,7 @@ import { registrarUsuario, registrarUPedido, registrarUDetallePedido, idPedido }
 
 let nombreUsuario = '';
 let correoUsuario = '';
+let detalleItems = [];
 
 const mapaNumeros = {
     "uno": 1, "una": 1,
@@ -20,10 +21,22 @@ const mapaNumeros = {
     "once": 11,
     "doce": 12
 };
+
+function limpiarTexto(texto) {
+    return texto
+        .toLowerCase()
+        .replace(/\s+/g, '')        // Quitar espacios
+        .replace(/\.$/, '')         // Quitar punto final
+        .replace(/arroba/g, '@')    // Convertir 'arroba' en '@'
+        .replace(/punto/g, '.')     // Convertir 'punto' en '.'
+        .replace(/coma/g, '.')      // Por si dice 'coma' en lugar de 'punto'
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, ''); // Quitar tildes
+}
+
   
 function convertirTextoANumero(texto) {
-    texto = texto.trim().toLowerCase();
-    if (!isNaN(texto)) return parseInt(texto); // ya es número
+    texto = limpiarTexto(texto);
+    if (!isNaN(texto)) return parseInt(texto); 
     return mapaNumeros[texto] || NaN;
 }
 
@@ -32,7 +45,7 @@ export function procesarRespuesta(texto, pasoActual) {
     mostrarDebug("Texto reconocido: " + texto);
 
     if (pasoActual === 1) {
-        const nombreExtraido = extraerNombre(texto);
+        const nombreExtraido = extraerNombre(limpiarTexto(texto));
         mostrarDebug("Nombre extraído: " + nombreExtraido);
 
         if (!esNombreValido(nombreExtraido)) {
@@ -47,10 +60,9 @@ export function procesarRespuesta(texto, pasoActual) {
         });
 
     } else if (pasoActual === 2) {
-        correoUsuario = texto.replace(/\s+/g, '').toLowerCase();
+        correoUsuario = limpiarTexto(texto).replace(/\s+/g, '');
         mostrarDebug("Correo limpio: " + correoUsuario);
-
-        const correoValido = correoUsuario.includes('@') && correoUsuario.includes('.');
+        const correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correoUsuario);
 
         if (!correoValido) {
             hablar("Eso no parece un correo válido. Repite por favor.", () => escuchar(2));
@@ -63,14 +75,17 @@ export function procesarRespuesta(texto, pasoActual) {
         });
 
     } else if (pasoActual === 3) {
-        const textoLimpio = texto.toLowerCase().trim();
+        const textoLimpio = limpiarTexto(texto);
     
         if (textoLimpio.includes("no")) {
             if (idPedido || window.idPedido) {
-                registrarUDetallePedido(idPedido || window.idPedido);
+                registrarUDetallePedido(idPedido || window.idPedido, detalleItems);
             } else {
-                hablar("No encontré un pedido activo para guardar los ítems.");
+                hablar("No encontré un pedido activo para guardar los ítems. Por favor vuelve a la opcion registrar pedido");
             }
+
+            window.idTemporal = null;
+            window.estadoPedido = 'esperando_id';
             return;
         }
     
@@ -82,23 +97,38 @@ export function procesarRespuesta(texto, pasoActual) {
                 mostrarEnChat(`Plato ${id_menu} seleccionado.`, 'sistema');
                 hablar("¿Cuántas unidades deseas?", () => escuchar(3));
             } else {
+                window.idTemporal = null;
+                window.estadoPedido = 'esperando_id';
                 hablar("No entendí el número del ítem. Por favor, repítelo.", () => escuchar(3));
             }
     
         } else if (window.estadoPedido === 'esperando_cantidad') {
             const cantidad = convertirTextoANumero(texto);
             if (!isNaN(cantidad) && cantidad > 0) {
-                const seleccion = JSON.parse(sessionStorage.getItem('menu_seleccionado') || '[]');
-                seleccion.push({ id_menu: window.idTemporal, cantidad });
-                sessionStorage.setItem('menu_seleccionado', JSON.stringify(seleccion));
+                const existente = detalleItems.find(item => item.id_menu === window.idTemporal);
+                if (existente) {
+                    existente.cantidad += cantidad;
+                } else {
+                    detalleItems.push({ id_menu: window.idTemporal, cantidad });
+                }
     
-                mostrarEnChat(`Plato ${window.idTemporal} agregado con ${cantidad} unidad(es).`, 'sistema');
+                
+
+                const itemSeleccionado = window.menuCompleto.find(item => item.id == window.idTemporal);
+                if (itemSeleccionado) {
+                    agregarItemDesdeVoz(itemSeleccionado.id, itemSeleccionado.nombre, cantidad);
+                    resaltarItem(itemSeleccionado.id);
+                    mostrarEnChat(`Plato ${window.idTemporal} agregado con ${cantidad} unidad(es).`, 'sistema');
+                }
     
                 window.idTemporal = null;
                 window.estadoPedido = 'esperando_id';
     
                 hablar("¿Deseas agregar otro ítem? Dime el número o di no.", () => escuchar(3));
+ 
             } else {
+                window.idTemporal = null;
+                window.estadoPedido = 'esperando_id';
                 hablar("No entendí la cantidad. Por favor, dime cuántas unidades deseas.", () => escuchar(3));
             }
         }
@@ -107,7 +137,7 @@ export function procesarRespuesta(texto, pasoActual) {
 }
 
 export function procesarRespuesta2(texto, contexto) {
-    const textoLimpio = texto.toLowerCase().trim();
+    const textoLimpio = limpiarTexto(texto);
     mostrarDebug("Respuesta2 reconocida: " + textoLimpio);
 
     const { idUsuario, tienePedidos, pedidos } = contexto;
